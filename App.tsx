@@ -4,21 +4,35 @@ import Lenis from 'lenis';
 import Navigation from './components/Navigation.tsx';
 import ThreeBackground from './components/ThreeBackground.tsx';
 import Hero from './components/Hero.tsx';
-import SystemsView from './views/SystemsView.tsx';
+import NeuralSync from './components/NeuralSync.tsx';
+import InterestsView from './views/InterestsView.tsx';
 import IntelligenceView from './views/IntelligenceView.tsx';
 import VenturesView from './views/VenturesView.tsx';
 import AnalysisView from './views/AnalysisView.tsx';
 import MindspaceView from './views/MindspaceView.tsx';
+import AdminDashboard from './views/AdminDashboard.tsx';
 import Footer from './components/Footer.tsx';
+import { useAnalytics } from './hooks/useAnalytics';
+import { useStore } from './lib/store';
+import { ShieldAlert } from 'lucide-react';
 
-export type ViewState = 'home' | 'systems' | 'intelligence' | 'ventures' | 'analysis' | 'mindspace';
+export type ViewState = 'home' | 'systems' | 'intelligence' | 'ventures' | 'analysis' | 'mindspace' | 'admin';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
   const [isLoaded, setIsLoaded] = useState(false);
+  const isIpFrozen = useStore(state => state.isIpFrozen);
+  const [myIp, setMyIp] = useState('');
+
+  // Real-time Analytics
+  useAnalytics(currentView);
 
   useEffect(() => {
-    // Initializing Lenis for smooth scroll
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => setMyIp(data.ip))
+      .catch(() => setMyIp('127.0.0.1'));
+
     const lenis = new Lenis({
       duration: 1.2,
       smoothWheel: true,
@@ -31,7 +45,6 @@ const App: React.FC = () => {
     }
     requestAnimationFrame(raf);
 
-    // Guaranteed load release
     const timer = setTimeout(() => setIsLoaded(true), 1000);
 
     return () => {
@@ -40,20 +53,41 @@ const App: React.FC = () => {
     };
   }, []);
 
+  if (myIp && isIpFrozen(myIp)) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center">
+        <div className="p-8 bg-red-500/10 rounded-full text-red-500 mb-8 border border-red-500/20">
+          <ShieldAlert size={64} />
+        </div>
+        <h1 className="text-4xl font-display font-bold text-white mb-4">Access Revoked</h1>
+        <p className="text-slate-500 max-w-md uppercase tracking-widest text-xs font-bold leading-relaxed">
+          Your node index ({myIp}) has been flagged and frozen by the archive administration.
+          Persistent access is suspended until further audit.
+        </p>
+      </div>
+    );
+  }
+
   const renderView = () => {
     switch (currentView) {
-      case 'home': return <Hero onExplore={() => setCurrentView('systems')} />;
-      case 'systems': return <SystemsView />;
+      case 'home': return (
+        <>
+          <Hero onExplore={() => setCurrentView('systems')} />
+          <NeuralSync />
+        </>
+      );
+      case 'systems': return <InterestsView />;
       case 'intelligence': return <IntelligenceView />;
       case 'ventures': return <VenturesView />;
       case 'analysis': return <AnalysisView />;
       case 'mindspace': return <MindspaceView />;
+      case 'admin': return <AdminDashboard />;
       default: return <Hero onExplore={() => setCurrentView('systems')} />;
     }
   };
 
   return (
-    <div className="relative min-h-screen bg-black selection:bg-sky-400/30 overflow-x-hidden text-white">
+    <div className={`relative min-h-screen bg-black selection:bg-sky-400/30 overflow-x-hidden text-white ${currentView === 'admin' ? 'overflow-y-auto' : ''}`}>
       <AnimatePresence>
         {!isLoaded && (
           <motion.div
@@ -74,9 +108,9 @@ const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <ThreeBackground currentView={currentView} />
-      
-      <Navigation currentView={currentView} setView={setCurrentView} />
+      {currentView !== 'admin' && <ThreeBackground currentView={currentView} />}
+
+      {currentView !== 'admin' && <Navigation currentView={currentView} setView={setCurrentView} />}
 
       <main className="relative z-10 w-full min-h-screen">
         <AnimatePresence mode="wait">
@@ -92,11 +126,13 @@ const App: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      <Footer />
-      
-      <div className="fixed inset-0 pointer-events-none z-[1]">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.02),transparent_80%)]" />
-      </div>
+      {currentView !== 'admin' && <Footer setView={setCurrentView} />}
+
+      {currentView !== 'admin' && (
+        <div className="fixed inset-0 pointer-events-none z-[1]">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.02),transparent_80%)]" />
+        </div>
+      )}
     </div>
   );
 };

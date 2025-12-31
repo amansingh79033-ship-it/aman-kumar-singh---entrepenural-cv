@@ -1,0 +1,337 @@
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    ShieldCheck,
+    Users,
+    Layout,
+    Eye,
+    Mic2,
+    Lock,
+    Unlock,
+    AlertCircle,
+    Play,
+    TrendingUp,
+    Activity,
+    LogOut,
+    Clock,
+    MapPin
+} from 'lucide-react';
+import { useStore, Visit, VoiceMessage } from '../lib/store';
+
+const AdminDashboard: React.FC = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [password, setPassword] = useState('');
+    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms'>('overview');
+    const [loginError, setLoginError] = useState(false);
+
+    // Store data
+    const { visits, messages, frozenIps, freezeIp, unfreezeIp } = useStore();
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (password === 'aman2025#') {
+            setIsAuthenticated(true);
+            setLoginError(false);
+        } else {
+            setLoginError(true);
+            setTimeout(() => setLoginError(false), 2000);
+        }
+    };
+
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center p-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full max-w-md glass p-10 rounded-[2.5rem] border-white/5"
+                >
+                    <div className="flex justify-center mb-10">
+                        <div className="w-16 h-16 bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-400 border border-sky-400/20">
+                            <ShieldCheck size={32} />
+                        </div>
+                    </div>
+                    <h2 className="text-3xl font-display font-bold text-white text-center mb-2">Vault Access</h2>
+                    <p className="text-slate-500 text-center text-xs uppercase tracking-widest font-bold mb-10">Archive Administration Protocol</p>
+
+                    <form onSubmit={handleLogin} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] text-slate-400 uppercase tracking-widest font-bold ml-4">Access Key</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                autoFocus
+                                className={`w-full bg-white/5 border ${loginError ? 'border-red-500/50' : 'border-white/10'} rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-sky-400/50 transition-all`}
+                                placeholder="••••••••"
+                            />
+                        </div>
+                        {loginError && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest text-center">Invalid Credentials</p>}
+                        <button className="w-full bg-sky-400 text-black font-bold uppercase tracking-widest text-xs py-5 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                            Initiate Handshake
+                        </button>
+                    </form>
+                </motion.div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-[#050505] text-white selection:bg-sky-400/30">
+            {/* Sidebar Nav (Desktop) */}
+            <nav className="hidden md:flex fixed left-8 top-1/2 -translate-y-1/2 z-[100] flex-col gap-4">
+                {[
+                    { id: 'overview', icon: <TrendingUp size={18} />, label: 'Overview' },
+                    { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
+                    { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' }
+                ].map(item => (
+                    <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id as any)}
+                        className={`p-4 rounded-2xl transition-all group relative ${activeTab === item.id ? 'bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,0.3)]' : 'glass text-slate-400 hover:text-sky-300'
+                            }`}
+                    >
+                        {item.icon}
+                        <span className="absolute left-full ml-4 px-3 py-1 bg-black border border-white/10 rounded-lg text-[9px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 pointer-events-none transition-all white-space-nowrap">
+                            {item.label}
+                        </span>
+                    </button>
+                ))}
+                <button
+                    onClick={() => setIsAuthenticated(false)}
+                    className="mt-12 p-4 glass text-slate-500 hover:text-red-400 rounded-2xl transition-all"
+                >
+                    <LogOut size={18} />
+                </button>
+            </nav>
+
+            {/* Bottom Nav (Mobile) */}
+            <nav className="md:hidden fixed bottom-6 left-6 right-6 z-[100] flex justify-between items-center glass p-2 rounded-2xl border-white/10 bg-black/90 backdrop-blur-xl">
+                {[
+                    { id: 'overview', icon: <TrendingUp size={18} />, label: 'Overview' },
+                    { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
+                    { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' }
+                ].map(item => (
+                    <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id as any)}
+                        className={`p-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-sky-400 text-black' : 'text-slate-400'}`}
+                    >
+                        {item.icon}
+                    </button>
+                ))}
+                <button
+                    onClick={() => setIsAuthenticated(false)}
+                    className="p-3 text-slate-500 hover:text-red-400"
+                >
+                    <LogOut size={18} />
+                </button>
+            </nav>
+
+            <main className="px-6 pb-32 pt-12 md:pl-32 md:pr-12 md:pb-24 max-w-[1600px] mx-auto">
+                {/* Header */}
+                <div className="flex justify-between items-end mb-16">
+                    <div>
+                        <div className="flex items-center gap-3 text-sky-400 text-[10px] font-bold uppercase tracking-[0.4em] mb-4">
+                            <Activity size={14} className="animate-pulse" /> Live Administration
+                        </div>
+                        <h1 className="text-5xl font-display font-bold">Archive <span className="text-sky-300">Intelligence.</span></h1>
+                    </div>
+                    <div className="glass px-6 py-4 rounded-2xl flex items-center gap-6">
+                        <div className="text-right">
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">System Status</div>
+                            <div className="text-sky-300 font-mono text-xs uppercase">Operational // Stable</div>
+                        </div>
+                        <div className="w-10 h-10 rounded-full border-2 border-sky-400/20 flex items-center justify-center">
+                            <div className="w-2 h-2 bg-sky-400 rounded-full animate-ping" />
+                        </div>
+                    </div>
+                </div>
+
+                <AnimatePresence mode="wait">
+                    {activeTab === 'overview' && (
+                        <motion.div
+                            key="overview"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                        >
+                            <StatCard icon={<Eye className="text-sky-300" />} label="Total Visuals" value={visits.length.toString()} trend="+12.4%" />
+                            <StatCard icon={<Users className="text-yellow-200" />} label="Unique IPs" value={new Set(visits.map(v => v.ip)).size.toString()} trend="+4.1%" />
+                            <StatCard icon={<Mic2 className="text-sky-400" />} label="Neural Syncs" value={messages.length.toString()} trend="Live" />
+                            <StatCard icon={<AlertCircle className="text-red-400" />} label="Frozen Nodes" value={frozenIps.length.toString()} trend="Secure" />
+
+                            <div className="col-span-1 md:col-span-2 lg:col-span-3 glass rounded-[3rem] p-10 border-white/5">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h3 className="text-xl font-display font-bold">Real-time Traffic Pipeline</h3>
+                                    <div className="flex gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-sky-400" />
+                                        <span className="w-2 h-2 rounded-full bg-white/10" />
+                                        <span className="w-2 h-2 rounded-full bg-white/10" />
+                                    </div>
+                                </div>
+                                <div className="h-64 flex items-end gap-1">
+                                    {visits.slice(0, 40).map((v, i) => (
+                                        <motion.div
+                                            key={v.id}
+                                            initial={{ height: 0 }}
+                                            animate={{ height: `${Math.random() * 80 + 20}%` }}
+                                            className="flex-1 bg-sky-400/20 hover:bg-sky-400/50 rounded-t-sm transition-colors cursor-help"
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="glass rounded-[3rem] p-10 border-white/5 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="text-lg font-display font-bold mb-6">Recent Path Audits</h3>
+                                    <div className="space-y-4">
+                                        {visits.slice(0, 5).map(v => (
+                                            <div key={v.id} className="flex items-center gap-3">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                                                <div className="flex-1">
+                                                    <div className="text-[10px] text-white font-mono break-all">{v.path}</div>
+                                                    <div className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">{new Date(v.timestamp).toLocaleTimeString()}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button onClick={() => setActiveTab('visitors')} className="text-sky-400 text-[10px] font-bold uppercase tracking-widest hover:underline mt-6">View Full Audit Log</button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'visitors' && (
+                        <motion.div
+                            key="visitors"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="glass rounded-[3rem] border-white/5 overflow-hidden"
+                        >
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="border-b border-white/5 bg-white/[0.02]">
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Node IP</th>
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Path Access</th>
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Timestamp</th>
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</th>
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {visits.map((v) => (
+                                        <tr key={v.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
+                                            <td className="px-10 py-6">
+                                                <div className="flex items-center gap-3">
+                                                    <MapPin size={12} className="text-slate-500" />
+                                                    <span className="text-xs font-mono text-slate-300">{v.ip}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-10 py-6">
+                                                <span className="text-xs font-mono text-sky-400/80">{v.path}</span>
+                                            </td>
+                                            <td className="px-10 py-6">
+                                                <div className="flex items-center gap-2 text-slate-500">
+                                                    <Clock size={12} />
+                                                    <span className="text-[10px] font-bold">{new Date(v.timestamp).toLocaleString()}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-10 py-6">
+                                                <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${v.status === 'active' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-500'
+                                                    }`}>
+                                                    {v.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-10 py-6 text-right">
+                                                {frozenIps.includes(v.ip) ? (
+                                                    <button
+                                                        onClick={() => unfreezeIp(v.ip)}
+                                                        className="text-green-400 hover:text-green-300 p-2 glass rounded-lg transition-all"
+                                                    >
+                                                        <Unlock size={14} />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => freezeIp(v.ip)}
+                                                        className="text-red-500 hover:text-red-400 p-2 glass rounded-lg transition-all"
+                                                    >
+                                                        <Lock size={14} />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {visits.length === 0 && (
+                                <div className="py-20 text-center text-slate-500 text-xs font-bold uppercase tracking-widest">No nodes detected in cycle</div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'comms' && (
+                        <motion.div
+                            key="comms"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                        >
+                            {messages.map((m) => (
+                                <div key={m.id} className="glass p-10 rounded-[2.5rem] border-white/5 hover:border-sky-400/30 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex justify-between items-start mb-8">
+                                            <div className="p-4 bg-sky-400/10 rounded-2xl text-sky-400">
+                                                <Mic2 size={24} />
+                                            </div>
+                                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                                                {new Date(m.timestamp).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                        <div className="text-white font-display font-bold text-xl mb-4">Neural Data Chunk</div>
+                                        <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mb-8 italic">Encrypted // {m.duration}s Sequence</p>
+                                    </div>
+
+                                    <button
+                                        onClick={() => {
+                                            const audio = new Audio(m.audioUrl);
+                                            audio.play();
+                                        }}
+                                        className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-sky-400 hover:text-black border border-white/10 hover:border-transparent py-4 rounded-2xl transition-all font-bold uppercase tracking-widest text-[10px]"
+                                    >
+                                        <Play size={14} fill="currentColor" /> Play Transmission
+                                    </button>
+                                </div>
+                            ))}
+                            {messages.length === 0 && (
+                                <div className="col-span-full py-20 glass rounded-[3rem] flex flex-col items-center justify-center opacity-50">
+                                    <AlertCircle className="text-slate-500 mb-4" size={40} />
+                                    <div className="text-slate-500 text-xs font-bold uppercase tracking-widest">No Neural Syncs Recorded</div>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
+        </div>
+    );
+};
+
+const StatCard: React.FC<{ icon: any, label: string, value: string, trend: string }> = ({ icon, label, value, trend }) => (
+    <div className="glass p-10 rounded-[3rem] border-white/5 hover:border-sky-400/10 transition-all">
+        <div className="flex justify-between items-start mb-8">
+            <div className="p-3 bg-white/5 rounded-xl text-slate-400">
+                {icon}
+            </div>
+            <div className={`text-[10px] font-bold ${trend.startsWith('+') ? 'text-green-400' : 'text-sky-300'} uppercase tracking-widest`}>
+                {trend}
+            </div>
+        </div>
+        <div className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-2">{label}</div>
+        <div className="text-4xl font-display font-bold text-white">{value}</div>
+    </div>
+);
+
+export default AdminDashboard;
