@@ -85,7 +85,7 @@ const App: React.FC = () => {
       case 'ventures': return <UnchiHaiBuildingView />;
       case 'analysis': return <AnalysisView />;
       case 'mindspace': return <MindspaceView />;
-      case 'admin': return <AdminDashboard />;
+      case 'admin': return <AdminDashboard onClose={() => setCurrentView('home')} />;
       default: return <Hero onExplore={() => setCurrentView('systems')} onWatchVision={() => setIsVisionOpen(true)} />;
     }
   };

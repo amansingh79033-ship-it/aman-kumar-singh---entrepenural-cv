@@ -15,11 +15,17 @@ import {
     Activity,
     LogOut,
     Clock,
-    MapPin
+    MapPin,
+    X,
+    ExternalLink
 } from 'lucide-react';
 import { useStore, Visit, VoiceMessage } from '../lib/store';
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+    onClose?: () => void;
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase'>('overview');
@@ -47,10 +53,20 @@ const AdminDashboard: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="w-full max-w-md glass p-10 rounded-[2.5rem] border-white/5"
                 >
-                    <div className="flex justify-center mb-10">
+                    <div className="flex justify-between items-center mb-10">
                         <div className="w-16 h-16 bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-400 border border-sky-400/20">
                             <ShieldCheck size={32} />
                         </div>
+                        {onClose && (
+                            <motion.button
+                                whileHover={{ rotate: 90, scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={onClose}
+                                className="p-3 glass rounded-full text-slate-500 hover:text-white transition-colors"
+                            >
+                                <X size={20} />
+                            </motion.button>
+                        )}
                     </div>
                     <h2 className="text-3xl font-display font-bold text-white text-center mb-2">Vault Access</h2>
                     <p className="text-slate-500 text-center text-xs uppercase tracking-widest font-bold mb-10">Archive Administration Protocol</p>
@@ -68,9 +84,20 @@ const AdminDashboard: React.FC = () => {
                             />
                         </div>
                         {loginError && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest text-center">Invalid Credentials</p>}
-                        <button className="w-full bg-sky-400 text-black font-bold uppercase tracking-widest text-xs py-5 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
-                            Initiate Handshake
-                        </button>
+
+                        <div className="flex flex-col gap-4">
+                            <button className="w-full bg-sky-400 text-black font-bold uppercase tracking-widest text-xs py-5 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                Initiate Handshake
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => window.open(window.location.origin, '_blank')}
+                                className="w-full bg-white/5 text-slate-400 hover:text-white font-bold uppercase tracking-widest text-[9px] py-4 rounded-2xl border border-white/5 hover:border-white/10 transition-all flex items-center justify-center gap-2"
+                            >
+                                <ExternalLink size={12} /> View Site in New Tab
+                            </button>
+                        </div>
                     </form>
                 </motion.div>
             </div>
@@ -319,14 +346,14 @@ const AdminDashboard: React.FC = () => {
                         >
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 <MediaCard
-                                    title="Profile Identity"
-                                    type="profile"
-                                    description="Central node visual for the main identity dockets."
-                                />
-                                <MediaCard
                                     title="Project Alpha"
                                     type="project1"
                                     description="Primary venture visualization layer 0."
+                                />
+                                <MediaCard
+                                    title="Profile Identity"
+                                    type="profile"
+                                    description="Central node visual for the main identity dockets."
                                 />
                                 <MediaCard
                                     title="Project Beta"

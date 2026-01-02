@@ -112,8 +112,8 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
           color="#38bdf8"
           size={1.5}
           items={[
-            showcaseImages.project1 ? <img src={showcaseImages.project1} className="w-full h-full object-cover rounded-[10px]" alt="Project 1" /> : <div className="w-full h-full bg-slate-700 flex items-center justify-center text-[8px] text-white uppercase font-bold">Project A</div>,
             showcaseImages.profile ? <img src={showcaseImages.profile} className="w-full h-full object-cover rounded-[10px]" alt="Profile" /> : <div className="w-full h-full bg-slate-800 flex items-center justify-center text-[8px] text-white uppercase font-bold">Profile Identity</div>,
+            showcaseImages.project1 ? <img src={showcaseImages.project1} className="w-full h-full object-cover rounded-[10px]" alt="Project 1" /> : <div className="w-full h-full bg-slate-700 flex items-center justify-center text-[8px] text-white uppercase font-bold">Project A</div>,
             showcaseImages.project2 ? <img src={showcaseImages.project2} className="w-full h-full object-cover rounded-[10px]" alt="Project 2" /> : <div className="w-full h-full bg-slate-600 flex items-center justify-center text-[8px] text-white uppercase font-bold">Project B</div>
           ]}
         />
