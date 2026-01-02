@@ -22,7 +22,7 @@ import { useStore, Visit, VoiceMessage } from '../lib/store';
 const AdminDashboard: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase'>('overview');
     const [loginError, setLoginError] = useState(false);
 
     // Store data
@@ -84,7 +84,8 @@ const AdminDashboard: React.FC = () => {
                 {[
                     { id: 'overview', icon: <TrendingUp size={18} />, label: 'Overview' },
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
-                    { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' }
+                    { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
+                    { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' }
                 ].map(item => (
                     <button
                         key={item.id}
@@ -111,7 +112,8 @@ const AdminDashboard: React.FC = () => {
                 {[
                     { id: 'overview', icon: <TrendingUp size={18} />, label: 'Overview' },
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
-                    { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' }
+                    { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
+                    { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' }
                 ].map(item => (
                     <button
                         key={item.id}
@@ -246,21 +248,15 @@ const AdminDashboard: React.FC = () => {
                                                 </span>
                                             </td>
                                             <td className="px-10 py-6 text-right">
-                                                {frozenIps.includes(v.ip) ? (
-                                                    <button
-                                                        onClick={() => unfreezeIp(v.ip)}
-                                                        className="text-green-400 hover:text-green-300 p-2 glass rounded-lg transition-all"
-                                                    >
-                                                        <Unlock size={14} />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => freezeIp(v.ip)}
-                                                        className="text-red-500 hover:text-red-400 p-2 glass rounded-lg transition-all"
-                                                    >
-                                                        <Lock size={14} />
-                                                    </button>
-                                                )}
+                                                <button
+                                                    onClick={() => {
+                                                        const toggleVisitStatus = useStore.getState().toggleVisitStatus;
+                                                        toggleVisitStatus(v.id);
+                                                    }}
+                                                    className={`p-2 glass rounded-lg transition-all ${v.status === 'active' ? 'text-red-500 hover:text-red-400' : 'text-green-400 hover:text-green-300'}`}
+                                                >
+                                                    {v.status === 'active' ? <Lock size={14} /> : <Unlock size={14} />}
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
@@ -313,6 +309,33 @@ const AdminDashboard: React.FC = () => {
                             )}
                         </motion.div>
                     )}
+
+                    {activeTab === 'showcase' && (
+                        <motion.div
+                            key="showcase"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="space-y-8"
+                        >
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <MediaCard
+                                    title="Profile Identity"
+                                    type="profile"
+                                    description="Central node visual for the main identity dockets."
+                                />
+                                <MediaCard
+                                    title="Project Alpha"
+                                    type="project1"
+                                    description="Primary venture visualization layer 0."
+                                />
+                                <MediaCard
+                                    title="Project Beta"
+                                    type="project2"
+                                    description="Secondary venture visualization layer 1."
+                                />
+                            </div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
             </main>
         </div>
@@ -333,5 +356,67 @@ const StatCard: React.FC<{ icon: any, label: string, value: string, trend: strin
         <div className="text-4xl font-display font-bold text-white">{value}</div>
     </div>
 );
+
+const MediaCard: React.FC<{ title: string, type: 'profile' | 'project1' | 'project2', description: string }> = ({ title, type, description }) => {
+    const { showcaseImages, setShowcaseImage } = useStore();
+    const currentImage = showcaseImages[type];
+
+    const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Compression logic (Simplified canvas resize)
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                // Max resolution 1200px
+                if (width > 1200) {
+                    height = (1200 / width) * height;
+                    width = 1200;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+
+                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8); // 80% quality
+                setShowcaseImage(type, compressedBase64);
+            };
+            img.src = event.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    return (
+        <div className="glass p-10 rounded-[2.5rem] border-white/5 hover:border-sky-400/20 transition-all group">
+            <h3 className="text-xl font-display font-bold mb-1">{title}</h3>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6">{description}</p>
+
+            <div className="aspect-square rounded-2xl bg-white/5 border border-white/10 overflow-hidden mb-8 relative flex items-center justify-center">
+                {currentImage ? (
+                    <img src={currentImage} className="w-full h-full object-cover" alt={title} />
+                ) : (
+                    <div className="text-slate-600 font-mono text-[10px] uppercase">Empty Docket</div>
+                )}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                    <label className="cursor-pointer bg-sky-400 text-black p-3 rounded-full hover:scale-110 transition-transform">
+                        <Play size={16} fill="currentColor" />
+                        <input type="file" className="hidden" accept="image/*" onChange={handleFile} />
+                    </label>
+                </div>
+            </div>
+
+            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] text-center">
+                Reflected in Hero Section // Persistent
+            </p>
+        </div>
+    );
+};
 
 export default AdminDashboard;

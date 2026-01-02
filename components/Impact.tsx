@@ -7,7 +7,7 @@ const Impact: React.FC = () => {
     { label: "Portfolio Valuation", value: "₹30 Cr+" },
     { label: "Total Investment", value: "< ₹3 L" },
     { label: "Efficiency Ratio", value: "100x" },
-    { label: "Founded Ventures", value: "8+" },
+    { label: "Unchi hai Building", value: "8+" }
   ];
 
   return (

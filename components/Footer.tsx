@@ -33,9 +33,13 @@ const Footer: React.FC<FooterProps> = ({ setView }) => {
               href={s.href}
               target={s.label === 'Call' ? '_self' : '_blank'}
               rel="noopener noreferrer"
-              className="text-slate-500 hover:text-sky-300 transition-colors flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"
+              className={`text-slate-500 hover:text-sky-300 transition-colors flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest ${s.label === 'CuriousMinds' ? 'group/curiousminds' : ''} `}
             >
-              {s.icon} {s.label}
+              {s.icon} 
+              <span className={s.label === 'CuriousMinds' ? 'group-hover/curiousminds:text-sky-300 transition-colors flex items-center gap-1' : ''}>
+                {s.label}
+                {s.label === 'CuriousMinds' && <ExternalLink className="w-3 h-3 text-slate-500 group-hover/curiousminds:text-sky-300 transition-colors opacity-0 group-hover/curiousminds:opacity-100 translate-x-[-5px] group-hover/curiousminds:translate-x-0 transition-all" />}
+              </span>
             </a>
           ))}
         </div>

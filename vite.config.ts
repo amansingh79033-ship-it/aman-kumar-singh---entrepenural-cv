@@ -6,10 +6,25 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: './',
+    base: '/',
     server: {
       port: 3000,
       host: '0.0.0.0',
+    },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      minify: 'esbuild',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+            'framer-motion': ['framer-motion'],
+            'three-vendor': ['three'],
+          }
+        }
+      }
     },
     plugins: [
       react(),

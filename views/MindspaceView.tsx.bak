@@ -1,0 +1,140 @@
+
+import React from 'react';
+import { motion } from 'framer-motion';
+
+const MindspaceView: React.FC = () => {
+  return (
+    <div className="pt-32 pb-40 px-6 min-h-screen max-w-5xl mx-auto">
+      <div className="text-center mb-40">
+        <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[10vw] font-display font-bold text-white/5 absolute left-1/2 -translate-x-1/2 top-20 select-none">
+          SAHIR
+        </motion.span>
+        <h2 className="text-7xl font-display font-bold text-white italic relative z-10">Sikandar</h2>
+        <p className="text-sky-400 font-display uppercase tracking-[0.5em] text-[10px] font-bold mt-4">The Poetic Resonance of Aman</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-32">
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-16">
+          <div className="space-y-4 text-right">
+            <p className="text-3xl text-slate-300 font-light leading-relaxed">एक दुनिया था ख़ुद में, और था ये भी की <br />मुट्ठी भर राख के मुक़ाबिल ना था ।</p>
+          </div>
+          <div className="space-y-4 text-right">
+            <p className="text-3xl text-slate-300 font-light leading-relaxed">पूछते हैं उनसे अकेलेपन की इंतहाँ ? <br />वो ख़ुद अपने जनाज़े में शामिल ना था ।</p>
+          </div>
+          <div className="space-y-4 text-right">
+            <p className="text-3xl text-sky-300 font-light leading-relaxed">वो टूट के भी मुस्कुरा रहा है अमन से , <br />कुछ भी था, वो रोने के क़ाबिल ना था।</p>
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="pt-20 border-l border-white/5 pl-20 space-y-12">
+          <div className="text-sm uppercase tracking-widest text-yellow-100 font-bold">" पत्थर के ज़ुबाँ "</div>
+          <p className="text-xl text-slate-400 leading-relaxed font-light italic">
+            जौन तुम्हें कुछ बताना चाहता था,<br />
+            सफ़र को छोड़ के वो घर आना चाहता था ।<br />
+            झुर्रियों को लपेट के मेरी आँखों पर,<br />
+            नख़ुदा सैलाब छुपाना चाहता था।<br />
+            उसने मेरे कंधे पर हाथ रखा ऐसे,<br />
+            कोई आसमाँ का ठिकाना चाहता था।<br />
+            लाज़िमी तो नहीं पर बस शब-ए-फ़िराक़ में,<br />
+            अपनी ग़लतियों के वाजिब, ग़ुरुर एक आशियाना चाहता था ।<br />
+            उसको सरे-आफ़ताब पर बिठा के अमन से दरिया,<br />
+            दरिया के किनारे में ठिकाना चाहता था।<br />
+            नुमाइश की सौख कोई नहीं मुझको ।२।<br />
+            साहिर तो फ़क़त एक ज़माना चाहता था।<br />
+            उन दुश्मनों को भी याद रखे मुसल्सल ज़माना,<br />
+            वैरी फ़रेब के बदले मर जाना चाहता था।<br />
+            सुनते थका नहीं आरज़ू वो सारे जहाँ की ।२।<br />
+            सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।<br />
+            ये उजड़े हुए घरों को देख के ठहर गया वरना,<br />
+            वो इन हाथों से अपना घर सजाना चाहता था।<br />
+            हर एक को राह में पत्थर दिख रहा है एक,<br />
+            बेज़ुबा! इन जाने वालों को मनाना चाहता था।<br />
+            क़त्ल से पहले का एक ख़त मिला है मुझको (2)<br />
+            ये लटका हुआ हक़ीक़त में, बदल जाना चाहता था ।२।
+          </p>
+          <div className="glass p-8 rounded-3xl border-sky-400/10">
+            <p className="text-xs text-slate-500 italic">Jaun Tumhe kuch batana chahta tha<br />
+            safar ko chor k wo ghar aana chahta tha<br />
+            jhurriyon ko lapet k meri aankhon par<br />
+            Nakhuda sailaab chipana chahta tha.<br />
+            usne mere kandhe par hath rakha aise,<br />
+            Koi Aasmaa ka thikana chahta tha.<br />
+            Lazimi toh nahi par bas shab ae firaq me<br />
+            Apni galtiyo k waazib wo alag ashiyana chahta tha<br />
+            Usko sare-aaftaab par bitha k aman<br />
+            Dariya k kinare ek thikana chahta tha<br />
+            numaish ki sau kh koi nahi mujhko,<br />
+            saahir toh faqat ek zamana chahta tha<br />
+            Un dushmanon ko v yaad rakhe musal-sal zamana<br />
+            Vairi fareb k badle mar jana chahta tha<br />
+            Sunte thaka nahi aarzuu wo sare jaha k,<br />
+            Sare jaha ko ek umra pehle, wo chor jana chahta tha<br />
+            Ye uzre huye gharon ko dekh k thehar gaya Warna,<br />
+            Wo in hathon se apna ghar sajana chahta tha<br />
+            Har Jaane wale k liye mil ka pathar ban k aana chahta tha<br />
+            bezuban hi tha bas, wo har ek ko manana chahta tha.<br />
+            Katal se pehle ka ek khat mila h mujhko (2)<br />
+            Ye latka hua haqiqat me badal jana chahta tha !<br />
+            Aman</p>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="mt-60 glass p-20 rounded-[4rem] border-white/5 text-center">
+        <h3 className="text-4xl font-display font-bold text-white mb-10 italic">"हमसफ़र"</h3>
+        <p className="text-slate-400 text-2xl font-light leading-relaxed max-w-2xl mx-auto">
+          आसमाँ से छिपा के सख़्सियत अपनी ,<br />
+          सितारों को साहिल हमसफ़र समझते हैं।<br /><br />
+          मोहब्बत भी फ़क़त फकीरी है,<br />
+          ये उनके दिल को अपना घर समझते हैं।<br /><br />
+          कहते हैं मुझको ग़लतियाँ सुधारो "अमन",<br />
+          अपनी परछाई से हमको जो बेख़बर समझते हैं।<br /><br />
+          देखते नहीं मुझको लोग अब मुस्कुराते हुए,<br />
+          ये भीड़ बस उनका हुनर देखते हैं।<br /><br />
+          मौत जिनको अज़ीज़ है मुद्दतों से जानी,<br />
+          उनकी आँखों में देखने से डरते हैं।<br /><br />
+          "उन्हें क्या लेना देना तुम्हारे ज़ख्म की गहराइयों से,<br />
+          इल्ज़ाम दिल पर लगाते है,जो जिगर देखते हैं।<br /><br />
+          उनके शहर के लोग कह रहे थे मुझको,<br />
+          गुज़रने वाले यहाँ एक रोज़, ठहर कर देखते हैं।"<br /><br />
+          उनके शहर के लोग कह रहे थे मुझको,<br />
+          गुज़रने वाले हर रोज़ यहाँ एक बार ठहर कर देखते हैं।<br /><br />
+          और,<br />
+          वहम के मारे हैं ये इश्क़ को क़ातिल बताने वाले ।२।<br />
+          ये चाँद के मुरीद हैं! जो इन्हें जी भर कर देखते हैं।।<br /><br />
+          -अमन
+        </p>
+      </div>
+    </div>
+
+    <div className="mt-60 glass p-20 rounded-[4rem] border-white/5 text-center">
+      <h3 className="text-4xl font-display font-bold text-white mb-10 italic">"साथ कौन है?"</h3>
+      <p className="text-slate-400 text-2xl font-light leading-relaxed max-w-2xl mx-auto">
+        वो मेरे सीने में धड़कन अपनी , सहेज कुछ यूँ रहा है<br />
+        वो इस क़दर जकड़ के भी मुझको, ढूँड़ तो सुकूँ रहा है !<br /><br />
+        वो जिसे आरज़ू सिर्फ़ मेरी हुआ करती थी जाना<br />
+        मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !2|
+      </p>
+    </div>
+
+    <div className="mt-60 glass p-20 rounded-[4rem] border-white/5 text-center">
+      <h3 className="text-4xl font-display font-bold text-white mb-10 italic">"कौन जाने मोहब्बत"</h3>
+      <p className="text-slate-400 text-2xl font-light leading-relaxed max-w-2xl mx-auto">
+        ~~~<br /><br />
+        ये कैसे दिखते हैं ज़िंदा लोग मरे हुए?<br />
+        हमसे पूछते हो? हम अपनी जाँ के पराए हैं।<br /><br />
+        ये इतने सारे बिन पगड़ी के लोग?   ( पगड़ी - ज़मीर )<br />
+        ये कौन हैं, ये कहाँ से आए हैं?<br /><br />
+        मसला सुनो!! जाँ नहीं निकलती तबीब!!   (तबीब- डॉक्टर)<br />
+        ये महफ़िल में मेरी जाँ, मेरी दवा लूटा के आए हैं!<br /><br />
+        उनके बारे में कहानियों में सुना था,<br />
+        हवाएँ मदहोश लगे, समझना उसने गीले बाल सुखाए हैं। (मदहोश- नशे में)<br /><br />
+        और,<br />
+        चाँद की बातें करने वाले उनके अज़ीज़ हुए! ।२।<br />
+        दीद को तरस रहे, जाहिल जो चाँद तोड़ के लाए हैं!
+      </p>
+    </div>
+  );
+};
+
+export default MindspaceView;

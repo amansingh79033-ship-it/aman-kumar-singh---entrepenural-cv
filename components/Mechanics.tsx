@@ -17,7 +17,7 @@ const Mechanics: React.FC = () => {
     },
     {
       icon: <Rocket className="text-sky-400" />,
-      title: "Venture Builder for Talent",
+      title: "Unchi hai Building for Talent",
       desc: "Integrating self-development libraries with future skills (AI, Coding, Critical Thinking)."
     },
     {

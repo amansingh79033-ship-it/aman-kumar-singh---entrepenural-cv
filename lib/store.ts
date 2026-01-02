@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -22,21 +21,31 @@ interface AppState {
     visits: Visit[];
     messages: VoiceMessage[];
     frozenIps: string[];
+    showcaseImages: {
+        profile: string | null;
+        project1: string | null;
+        project2: string | null;
+    };
     addVisit: (visit: Omit<Visit, 'id' | 'timestamp' | 'status'>) => void;
     addMessage: (message: Omit<VoiceMessage, 'id' | 'timestamp'>) => void;
     freezeIp: (ip: string) => void;
     unfreezeIp: (ip: string) => void;
     isIpFrozen: (ip: string) => boolean;
+    setShowcaseImage: (type: 'profile' | 'project1' | 'project2', base64: string) => void;
+    toggleVisitStatus: (visitId: string) => void;
 }
 
-// NOTE: Using Zustand for local persistence simulation as backend is not available
-// This can be easily migrated to Firebase/Supabase
 export const useStore = create<AppState>()(
     persist(
         (set, get) => ({
             visits: [],
             messages: [],
             frozenIps: [],
+            showcaseImages: {
+                profile: null,
+                project1: null,
+                project2: null,
+            },
             addVisit: (data) => {
                 const visit: Visit = {
                     ...data,
@@ -63,6 +72,27 @@ export const useStore = create<AppState>()(
                 visits: state.visits.map(v => v.ip === ip ? { ...v, status: 'active' } : v)
             })),
             isIpFrozen: (ip) => get().frozenIps.includes(ip),
+            setShowcaseImage: (type, base64) => set((state) => ({
+                showcaseImages: { ...state.showcaseImages, [type]: base64 }
+            })),
+            toggleVisitStatus: (visitId) => set((state) => {
+                const visit = state.visits.find(v => v.id === visitId);
+                if (!visit) return state;
+                const newStatus = visit.status === 'active' ? 'frozen' : 'active';
+                const ip = visit.ip;
+
+                let newFrozenIps = [...state.frozenIps];
+                if (newStatus === 'frozen') {
+                    if (!newFrozenIps.includes(ip)) newFrozenIps.push(ip);
+                } else {
+                    newFrozenIps = newFrozenIps.filter(i => i !== ip);
+                }
+
+                return {
+                    visits: state.visits.map(v => v.ip === ip ? { ...v, status: newStatus } : v),
+                    frozenIps: newFrozenIps
+                };
+            })
         }),
         {
             name: 'archive-storage',

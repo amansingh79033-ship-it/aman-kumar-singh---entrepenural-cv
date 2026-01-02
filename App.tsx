@@ -5,13 +5,15 @@ import Navigation from './components/Navigation.tsx';
 import ThreeBackground from './components/ThreeBackground.tsx';
 import Hero from './components/Hero.tsx';
 import NeuralSync from './components/NeuralSync.tsx';
+import SkillMatrix from './components/SkillMatrix.tsx';
 import InterestsView from './views/InterestsView.tsx';
 import IntelligenceView from './views/IntelligenceView.tsx';
-import VenturesView from './views/VenturesView.tsx';
+import UnchiHaiBuildingView from './views/VenturesView.tsx';
 import AnalysisView from './views/AnalysisView.tsx';
 import MindspaceView from './views/MindspaceView.tsx';
 import AdminDashboard from './views/AdminDashboard.tsx';
 import Footer from './components/Footer.tsx';
+import VisionModal from './components/VisionModal.tsx';
 import { useAnalytics } from './hooks/useAnalytics';
 import { useStore } from './lib/store';
 import { ShieldAlert } from 'lucide-react';
@@ -20,6 +22,7 @@ export type ViewState = 'home' | 'systems' | 'intelligence' | 'ventures' | 'anal
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
+  const [isVisionOpen, setIsVisionOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const isIpFrozen = useStore(state => state.isIpFrozen);
   const [myIp, setMyIp] = useState('');
@@ -72,22 +75,26 @@ const App: React.FC = () => {
     switch (currentView) {
       case 'home': return (
         <>
-          <Hero onExplore={() => setCurrentView('systems')} />
+          <Hero onExplore={() => setCurrentView('systems')} onWatchVision={() => setIsVisionOpen(true)} />
+          <SkillMatrix />
           <NeuralSync />
         </>
       );
       case 'systems': return <InterestsView />;
       case 'intelligence': return <IntelligenceView />;
-      case 'ventures': return <VenturesView />;
+      case 'ventures': return <UnchiHaiBuildingView />;
       case 'analysis': return <AnalysisView />;
       case 'mindspace': return <MindspaceView />;
       case 'admin': return <AdminDashboard />;
-      default: return <Hero onExplore={() => setCurrentView('systems')} />;
+      default: return <Hero onExplore={() => setCurrentView('systems')} onWatchVision={() => setIsVisionOpen(true)} />;
     }
   };
 
   return (
     <div className={`relative min-h-screen bg-black selection:bg-sky-400/30 overflow-x-hidden text-white ${currentView === 'admin' ? 'overflow-y-auto' : ''}`}>
+      {/* Vision Modal Global Overlay */}
+      <VisionModal isOpen={isVisionOpen} onClose={() => setIsVisionOpen(false)} />
+
       <AnimatePresence>
         {!isLoaded && (
           <motion.div

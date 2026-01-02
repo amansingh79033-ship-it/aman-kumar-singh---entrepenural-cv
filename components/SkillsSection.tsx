@@ -46,7 +46,7 @@ const SkillsSection: React.FC = () => {
             color="text-yellow-200"
           />
           <SkillCard 
-            title="Venture Layer" 
+            title="Unchi hai Building"
             icon={<Layers size={24} />}
             skills={["PropTech", "EdTech", "SaaS Architecture", "Market Forensics"]}
             color="text-sky-300"
