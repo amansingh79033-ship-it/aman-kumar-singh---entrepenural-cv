@@ -32,6 +32,10 @@ const App: React.FC = () => {
   useAnalytics(currentView);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentView]);
+
+  useEffect(() => {
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
       .then(data => setMyIp(data.ip))
