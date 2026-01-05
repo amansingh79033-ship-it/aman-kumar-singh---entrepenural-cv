@@ -264,7 +264,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
                     <div className="p-10 rounded-[3rem] bg-white/[0.03] border border-white/5">
                         <h4 className="text-white font-bold mb-4 flex items-center gap-2">03. Verification Agents</h4>
                         <p className="text-slate-400 text-sm leading-relaxed">
-                            A secondary LLM layer exists solely to find contradictions between the AI's suggestions and the user's historical facts. Accuracy > Speed.
+                            A secondary LLM layer exists solely to find contradictions between the AI's suggestions and the user's historical facts. Accuracy &gt; Speed.
                         </p>
                     </div>
                     <div className="p-10 rounded-[3rem] bg-white/[0.03] border border-white/5">
