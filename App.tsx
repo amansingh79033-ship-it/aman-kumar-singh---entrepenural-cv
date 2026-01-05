@@ -13,13 +13,14 @@ import AnalysisView from './views/AnalysisView.tsx';
 import MindspaceView from './views/MindspaceView.tsx';
 import AdminDashboard from './views/AdminDashboard.tsx';
 import ResourcesView from './views/ResourcesView.tsx';
+import AhiReportView from './views/AhiReportView.tsx';
 import Footer from './components/Footer.tsx';
 import VisionModal from './components/VisionModal.tsx';
 import { useAnalytics } from './hooks/useAnalytics';
 import { useStore } from './lib/store';
 import { ShieldAlert } from 'lucide-react';
 
-export type ViewState = 'home' | 'systems' | 'intelligence' | 'ventures' | 'analysis' | 'mindspace' | 'admin' | 'resources';
+export type ViewState = 'home' | 'systems' | 'intelligence' | 'ventures' | 'analysis' | 'mindspace' | 'admin' | 'resources' | 'ahi-report';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('home');
@@ -97,6 +98,7 @@ const App: React.FC = () => {
       case 'analysis': return <AnalysisView />;
       case 'mindspace': return <MindspaceView />;
       case 'resources': return <ResourcesView />;
+      case 'ahi-report': return <AhiReportView onBack={() => setCurrentView('intelligence')} />;
       case 'admin': return <AdminDashboard onClose={() => setCurrentView('home')} />;
       default: return <Hero onExplore={() => setCurrentView('systems')} onWatchVision={() => setIsVisionOpen(true)} />;
     }

@@ -33,6 +33,18 @@ const IntelligenceView: React.FC = () => {
               </p>
               <div className="mt-2 text-xs text-sky-500 font-bold uppercase tracking-widest">— Aman Kumar Singh</div>
             </div>
+            <div className="mt-12 flex flex-wrap gap-4">
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('change-view', { detail: 'ahi-report' }));
+                }}
+                className="px-8 py-4 bg-sky-400 text-black font-bold uppercase tracking-widest text-xs rounded-full hover:bg-sky-300 transition-all flex items-center gap-3 group"
+              >
+                <BookOpen size={16} />
+                Deep Dive Research
+                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </motion.div>
 
           {/* Metrics Grid */}
