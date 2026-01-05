@@ -361,7 +361,7 @@ const SkillMatrix: React.FC = () => {
     }, []); // Empty dependency array!
 
     return (
-        <section id="skillset" className="relative h-screen bg-[#050505] overflow-hidden flex flex-col items-center py-20">
+        <section id="skillset" className="relative h-screen bg-black overflow-hidden flex flex-col items-center py-20">
             {/* Header */}
             <div className="z-10 text-center pointer-events-none mb-4">
                 <div className="inline-block px-4 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-bold uppercase tracking-[0.3em] mb-4 shadow-[0_0_15px_rgba(56,189,248,0.2)]">

@@ -48,7 +48,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-400 text-[10px] font-bold uppercase tracking-[0.2em]">
                         <BookOpen size={12} /> Research Report // R-105-EXPANDED-V2
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-display font-bold text-white leading-tight">
+                    <h1 className="text-4xl md:text-7xl font-display font-bold text-white leading-tight">
                         Deep Dive: <br />
                         <span className="text-sky-400 text-glow">The AHI Nexus</span>
                     </h1>
@@ -67,7 +67,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
                 <img
                     src="/ahi_scaffolding_visualization_1767640747096.png"
                     alt="AHI Scaffolding Visualization"
-                    className="w-full h-[600px] object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000"
+                    className="w-full h-[300px] md:h-[600px] object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                 <div className="absolute bottom-12 left-12 right-12">
@@ -94,7 +94,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
                     {/* With Us - High Depth */}
                     <motion.div
                         whileHover={{ y: -10 }}
-                        className="p-12 rounded-[3.5rem] bg-gradient-to-br from-sky-400/10 to-transparent border border-sky-400/20 relative overflow-hidden group"
+                        className="p-8 md:p-12 rounded-[2rem] md:rounded-[3.5rem] bg-gradient-to-br from-sky-400/10 to-transparent border border-sky-400/20 relative overflow-hidden group"
                     >
                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-sky-400/10 rounded-full blur-[100px] group-hover:bg-sky-400/20 transition-all duration-700" />
                         <div className="relative z-10">
@@ -133,7 +133,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
                     {/* Not For Us - High Depth */}
                     <motion.div
                         whileHover={{ y: -10 }}
-                        className="p-12 rounded-[3.5rem] bg-gradient-to-br from-purple-400/10 to-transparent border border-purple-400/20 relative overflow-hidden group"
+                        className="p-8 md:p-12 rounded-[2rem] md:rounded-[3.5rem] bg-gradient-to-br from-purple-400/10 to-transparent border border-purple-400/20 relative overflow-hidden group"
                     >
                         <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-400/10 rounded-full blur-[100px] group-hover:bg-purple-400/20 transition-all duration-700" />
                         <div className="relative z-10">
@@ -228,7 +228,7 @@ const AhiReportView: React.FC<AhiReportViewProps> = ({ onBack }) => {
             <motion.div
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
-                className="mb-40 p-12 rounded-[4rem] bg-white/[0.02] border border-white/5 relative group overflow-hidden"
+                className="mb-40 p-6 md:p-12 rounded-[2rem] md:rounded-[4rem] bg-white/[0.02] border border-white/5 relative group overflow-hidden"
             >
                 <img
                     src="/ahi_timeline_viz_1767640765379.png"
