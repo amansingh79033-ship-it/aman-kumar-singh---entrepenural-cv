@@ -62,3 +62,69 @@ html.lenis {
   scrollbar-width: none;  /* Firefox */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
+
+/* Mobile-friendly styles */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  .font-display {
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
+  }
+  
+  /* Ensure proper spacing on mobile */
+  .p-8 {
+    padding: 1rem;
+  }
+  
+  .p-10 {
+    padding: 1.5rem;
+  }
+  
+  .rounded-\[2rem\] {
+    border-radius: 1.5rem;
+  }
+  
+  .rounded-\[3rem\] {
+    border-radius: 2rem;
+  }
+  
+  /* Adjust poem card layout on mobile */
+  .poem-card-mobile {
+    padding: 1rem;
+    margin: 0.5rem;
+  }
+  
+  /* Make sure controls are accessible on mobile */
+  .mobile-controls {
+    padding: 0.5rem;
+    min-height: 44px; /* Minimum touch target size */
+  }
+  
+  /* Adjust text sizes for readability */
+  .text-lg {
+    font-size: 1rem;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem;
+  }
+}
+
+/* Ensure proper viewport settings for mobile */
+@viewport {
+  width: device-width;
+  initial-scale: 1;
+  user-zoom: fixed;
+}
+
+/* Prevent font scaling in landscape mode */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}

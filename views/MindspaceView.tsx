@@ -14,10 +14,31 @@ const PoemCard: React.FC<{
   const [isPaused, setIsPaused] = React.useState(false);
   const [highlightRange, setHighlightRange] = React.useState<{ start: number; end: number } | null>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
-  const [playbackSpeed, setPlaybackSpeed] = React.useState(0.85);
+  const [playbackSpeed, setPlaybackSpeed] = React.useState(1.0);
   const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
   const [pausePosition, setPausePosition] = React.useState<number>(0);
   const backgroundAudioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  // Handle mobile device audio playback policies
+  React.useEffect(() => {
+    // On mobile devices, audio playback often requires user interaction first
+    const handleUserInteraction = () => {
+      if (backgroundAudioRef.current && backgroundAudioRef.current.paused) {
+        backgroundAudioRef.current.play().catch(e => console.log('Background music play prevented:', e));
+      }
+      // Remove the event listener after first interaction
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
+    };
+
+    document.addEventListener('touchstart', handleUserInteraction);
+    document.addEventListener('click', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
+    };
+  }, []);
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -142,7 +163,7 @@ const PoemCard: React.FC<{
     utterance.lang = 'hi-IN';
     // For poetic delivery, use more expressive parameters
     utterance.pitch = gender === 'female' ? 0.85 : 0.6; // More expressive pitch for shayar-like delivery
-    utterance.rate = playbackSpeed * 0.45; // Slower for better poetic delivery and emotional expression
+    utterance.rate = playbackSpeed; // Adjust rate to match selected speed (was playbackSpeed * 0.45 which was too slow)
     utterance.volume = 0.8; // Slightly higher volume for better clarity
 
     utterance.onstart = () => {
@@ -291,10 +312,10 @@ const PoemCard: React.FC<{
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
       viewport={{ margin: "-50px" }}
-      className={`group relative p-8 md:p-10 rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className}`}
+      className={`group relative p-6 sm:p-8 md:p-10 rounded-[1.5rem] sm:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
     >
       {/* Playback Controls */}
-      <div className="absolute top-4 md:top-6 right-4 md:right-14 z-20 flex items-center gap-2">
+      <div className="absolute top-3 md:top-6 right-3 md:right-14 z-20 flex items-center gap-2 mobile-controls">
         {!isSpeaking ? (
           <motion.button
             whileHover={{ scale: 1.1 }}
@@ -331,12 +352,12 @@ const PoemCard: React.FC<{
               initial={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
               animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
-              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex flex-col gap-2 shadow-2xl min-w-[140px] md:min-w-[120px]"
+              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex flex-col gap-2 shadow-2xl min-w-[140px] md:min-w-[120px] mobile-controls"
             >
               <div className="flex gap-1">
                 <button
                   onClick={() => speak('male')}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 md:py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                   title="Men Voice"
                 >
                   <User size={12} /> Men
@@ -344,19 +365,19 @@ const PoemCard: React.FC<{
                 <div className="w-[1px] bg-white/10" />
                 <button
                   onClick={() => speak('female')}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 md:py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                   title="Women Voice"
                 >
                   <UserCheck size={12} /> Women
                 </button>
               </div>
 
-              <div className="border-t border-white/5 flex items-center justify-between p-1 pt-2">
-                {[0.7, 0.85, 1.0, 1.2].map((s) => (
+              <div className="border-t border-white/5 flex items-center justify-between p-2 pt-3">
+                {[0.8, 1.0, 1.25, 1.5].map((s) => (
                   <button
                     key={s}
                     onClick={() => setPlaybackSpeed(s)}
-                    className={`px-2 py-1 rounded-md text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                    className={`px-3 py-2 rounded-md text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
                   >
                     {s}x
                   </button>
@@ -385,7 +406,7 @@ const PoemCard: React.FC<{
 
       <div
         ref={contentRef}
-        className={`space-y-6 text-slate-300 font-light leading-relaxed text-lg md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-12' : ''}`}
+        className={`space-y-4 sm:space-y-6 text-slate-300 font-light leading-relaxed text-base sm:text-lg md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-12' : ''}`}
       >
         {isSpeaking ? (
           /* Using recursive walker to inject highlights while preserving structure */
@@ -403,13 +424,16 @@ const PoemCard: React.FC<{
     // Create or reuse audio element for background music
     if (!backgroundAudioRef.current) {
       // Create a new audio element with a Sufi/flute sound URL
-      // In a real implementation, this would point to actual Sufi flute/sitar music
+      // Using a silent placeholder that can be replaced with actual Sufi flute/sitar music
       backgroundAudioRef.current = new Audio();
       
-      // For now, we'll set a placeholder URL that would be replaced with actual Sufi music
-      // In a real implementation, you would use actual audio files
-      backgroundAudioRef.current.src = ''; // Placeholder - should be replaced with actual Sufi flute/sitar music URL
-      // Example: backgroundAudioRef.current.src = 'path/to/sufi-flute-sitar.mp3';
+      // In a real implementation, this would point to actual Sufi flute/sitar music
+      // The actual Sufi flute/sitar music loaded from assets
+      backgroundAudioRef.current.src = '/assets/sufi-flute-sitar.mp3';
+      // Fallback to silent audio if the asset is not available
+      backgroundAudioRef.current.onerror = () => {
+        backgroundAudioRef.current!.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAAAAAA';
+      };
       backgroundAudioRef.current.loop = true;
       backgroundAudioRef.current.volume = 0.2; // Mild volume
     }
