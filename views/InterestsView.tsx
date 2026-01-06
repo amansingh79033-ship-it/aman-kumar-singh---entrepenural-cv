@@ -170,9 +170,9 @@ const InterestsView: React.FC = () => {
 
                         {[
                             { id: 'cognitive', label: 'Cognitive Augmentation', icon: Brain },
-                            { id: 'tokenized', label: 'Tokenized Sovereignty', icon: Cuboid },
-                            { id: 'logistics', label: 'Interstellar Logistics', icon: Globe },
-                            { id: 'pedagogy', label: 'Hyper-Pedagogy', icon: Zap },
+                            { id: 'tokenized', label: 'Digital Property', icon: Cuboid },
+                            { id: 'logistics', label: 'Space Supply Chains', icon: Globe },
+                            { id: 'pedagogy', label: 'Smart Teaching', icon: Zap },
                         ].map((item) => {
                             const isActive = activeSection === item.id;
                             const Icon = item.icon;
@@ -208,6 +208,34 @@ const InterestsView: React.FC = () => {
                 </div>
             </div>
 
+            {/* Mobile Section Navigation */}
+            <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 glass rounded-2xl p-2 border-white/10 bg-black/90 backdrop-blur-xl">
+                <div className="flex justify-between items-center gap-1 overflow-x-auto scrollbar-hide">
+                    {[
+                        { id: 'cognitive', icon: Brain, label: 'Cognitive' },
+                        { id: 'tokenized', icon: Cuboid, label: 'Tokenized' },
+                        { id: 'logistics', icon: Globe, label: 'Logistics' },
+                        { id: 'pedagogy', icon: Zap, label: 'Pedagogy' },
+                    ].map((item) => {
+                        const isActive = activeSection === item.id;
+                        const Icon = item.icon;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => scrollTo(item.id)}
+                                className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 px-2 rounded-xl text-[8px] font-bold uppercase tracking-wider transition-all ${isActive
+                                    ? 'text-sky-400 bg-sky-400/10'
+                                    : 'text-slate-500'
+                                    }`}
+                            >
+                                <Icon size={16} />
+                                <span className="truncate max-w-full">{item.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
             {/* Main Content Area */}
             <div className="flex-1 min-w-0">
                 <div className="mb-20 pl-8 md:pl-20 border-l border-white/5 border-dashed relative">
@@ -229,28 +257,28 @@ const InterestsView: React.FC = () => {
                         icon={<Brain size={20} />}
                         content={
                             <>
-                                <p>AHI (Assistance to Human Intelligence) posits that the detailed bottleneck of human productivity is no longer information access, but information <strong>synthesis</strong>.</p>
-                                <p>Our research indicates that the average knowledge worker spends 40% of their cognitive load on 'context switching' and memory retrieval. By offloading these compute-heavy tasks to a neural exoskeleton, we reclaim purely creative bandwidth.</p>
+                                <p>AHI (Assistance to Human Intelligence) shows that the main challenge of human productivity is no longer finding information, but <strong>combining it</strong> effectively.</p>
+                                <p>Our research shows that the average knowledge worker spends 40% of their mental energy on 'switching tasks' and remembering things. By letting AI handle these heavy tasks, we free up purely creative thinking.</p>
                                 <blockquote className="pl-4 border-l-2 border-sky-400 italic text-white my-6">"It is not about Faster Thought. It is about Deeper Thought."</blockquote>
-                                <p>We implement real-time knowledge graphs that map intent to execution, effectively giving a single individual the output capacity of a pre-AI corporation.</p>
+                                <p>We use real-time knowledge maps that connect your ideas to actions, giving a single person the output power of a pre-AI company.</p>
                             </>
                         }
                         chart={<ChartLine />}
                         stats={[
-                            { label: "Synthesis Velocity", value: "100x", trend: "+12%" },
+                            { label: "Info Combining Speed", value: "100x", trend: "+12%" },
                             { label: "Context Retention", value: "99.9%" },
                         ]}
                     />
 
                     <Section
                         id="tokenized"
-                        title="Tokenized Sovereignty"
+                        title="Digital Property"
                         subtitle="The New Real Estate"
                         icon={<Cuboid size={20} />}
                         content={
                             <>
-                                <p>Deconstructing physical assets into liquid, programmable truth. Real Estate is the world's largest asset class ($300T+), yet it remains illiquid and gatekept.</p>
-                                <p><strong>Propsynx</strong> demonstrates that by creating a programmable layer of ownership, property rights can move with the velocity of information, reducing settlement times from 30 days to 30 seconds. One-tap property background verification and deep-dive analysis of the last 100 years.</p>
+                                <p>Breaking down physical assets into liquid, programmable truth. Real Estate is the world's largest asset class ($300T+), yet it remains hard to buy/sell and controlled by gatekeepers.</p>
+                                <p><strong>Propsynx</strong> shows that by creating a programmable layer of ownership, property rights can move as fast as information, reducing settlement times from 30 days to 30 seconds. One-tap property background check and deep analysis of the last 100 years.</p>
                                 <ul className="list-disc list-inside space-y-2 mt-4 text-slate-500">
                                     <li>Fractional ownership down to the square millimeter.</li>
                                     <li>Instant collateralization for DeFi protocols.</li>
@@ -285,8 +313,8 @@ const InterestsView: React.FC = () => {
 
                     <Section
                         id="pedagogy"
-                        title="Hyper-Pedagogy"
-                        subtitle="The End of Factory Education"
+                        title="Smart Teaching"
+                        subtitle="The End of One-Size-Fits-All Education"
                         icon={<Zap size={20} />}
                         content={
                             <>
@@ -310,8 +338,8 @@ const InterestsView: React.FC = () => {
                         ]}
                     />
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

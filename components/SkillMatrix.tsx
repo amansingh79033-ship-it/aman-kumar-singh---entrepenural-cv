@@ -18,7 +18,7 @@ interface Category {
 // --- Data ---
 const CATEGORIES: Category[] = [
     { id: 'neural', name: "Neural / AI", color: "#a855f7" },
-    { id: 'web', name: "Sovereign Web", color: "#38bdf8" },
+    { id: 'web', name: "Modern Web", color: "#38bdf8" },
     { id: 'cloud', name: "Cloud & Ops", color: "#84cc16" },
     { id: 'strategy', name: "Strategy", color: "#f43f5e" },
     { id: 'dekhRekh', name: "DekhRekh (M&O)", color: "#f59e0b" }
@@ -30,7 +30,7 @@ const SKILLS: Skill[] = [
     { name: "PyTorch", usage: "Market Pattern Recognition Models", category: 'neural' },
     { name: "RAG", usage: "Contextual Knowledge Retrieval", category: 'neural' },
     { name: "LangChain", usage: "Autonomous Workflow Orchestration", category: 'neural' },
-    { name: "OpenAI", usage: "GPT-4 Fine-tuning & Synthesis", category: 'neural' },
+    { name: "OpenAI", usage: "GPT-4 Fine-tuning & Integration", category: 'neural' },
     { name: "Vector DB", usage: "Pinecone High-Dim Storage", category: 'neural' },
 
     // Web
@@ -392,33 +392,35 @@ const SkillMatrix: React.FC = () => {
             </AnimatePresence>
 
             {/* Filter Controls */}
-            <div className="absolute bottom-10 z-20 flex flex-wrap justify-center gap-3 px-4">
-                <button
-                    onClick={() => setActiveCategory('all')}
-                    className={`px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all ${activeCategory === 'all'
-                        ? 'bg-white text-black shadow-[0_0_20px_white]'
-                        : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
-                        }`}
-                >
-                    ALL NODES
-                </button>
-                {CATEGORIES.map(cat => (
+            <div className="absolute bottom-6 md:bottom-10 z-20 left-0 right-0 px-4">
+                <div className="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                     <button
-                        key={cat.id}
-                        onClick={() => setActiveCategory(cat.id)}
-                        className={`px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] transition-all border ${activeCategory === cat.id
-                            ? `bg-${cat.color}/20 text-white shadow-[0_0_20px_${cat.color}]`
-                            : 'bg-transparent text-gray-500 border-white/10 hover:border-white/30'
+                        onClick={() => setActiveCategory('all')}
+                        className={`px-4 md:px-6 py-2.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all whitespace-nowrap flex-shrink-0 ${activeCategory === 'all'
+                            ? 'bg-white text-black shadow-[0_0_20px_white]'
+                            : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
                             }`}
-                        style={{
-                            borderColor: activeCategory === cat.id ? cat.color : undefined,
-                            backgroundColor: activeCategory === cat.id ? cat.color : undefined,
-                            color: activeCategory === cat.id ? 'black' : undefined
-                        }}
                     >
-                        {cat.name}
+                        ALL NODES
                     </button>
-                ))}
+                    {CATEGORIES.map(cat => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setActiveCategory(cat.id)}
+                            className={`px-4 md:px-6 py-2.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all border whitespace-nowrap flex-shrink-0 ${activeCategory === cat.id
+                                ? `bg-${cat.color}/20 text-white shadow-[0_0_20px_${cat.color}]`
+                                : 'bg-transparent text-gray-500 border-white/10 hover:border-white/30'
+                                }`}
+                            style={{
+                                borderColor: activeCategory === cat.id ? cat.color : undefined,
+                                backgroundColor: activeCategory === cat.id ? cat.color : undefined,
+                                color: activeCategory === cat.id ? 'black' : undefined
+                            }}
+                        >
+                            {cat.name}
+                        </button>
+                    ))}
+                </div>
             </div>
         </section>
     );

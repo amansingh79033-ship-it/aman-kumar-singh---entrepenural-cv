@@ -12,7 +12,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navItems: { id: ViewState; name: string; desc: string }[] = [
-    { id: 'systems', name: 'Systems', desc: 'The Pedagogy' },
+    { id: 'systems', name: 'Systems', desc: 'The Method' },
     { id: 'intelligence', name: 'Intelligence', desc: 'AHI Protocol' },
     { id: 'ventures', name: 'Unchi hai Building', desc: '30Cr Portfolio' },
     { id: 'analysis', name: 'Analysis', desc: 'Forensics' },

@@ -158,40 +158,40 @@ const PoemCard: React.FC<{
       className={`group relative p-8 md:p-10 rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className}`}
     >
       {/* Playback Controls */}
-      <div className="absolute top-6 right-14 z-20 flex items-center gap-2">
+      <div className="absolute top-4 md:top-6 right-4 md:right-14 z-20 flex items-center gap-2">
         {!isSpeaking ? (
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowVoicePicker(!showVoicePicker)}
-            className="p-3 bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
+            className="p-2.5 md:p-3 bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
             title="Hear with emotion"
           >
-            <Mic2 size={18} />
+            <Mic2 size={16} className="md:w-[18px] md:h-[18px]" />
           </motion.button>
         ) : (
           <motion.button
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ repeat: Infinity, duration: 1 }}
             onClick={stopSpeaking}
-            className="p-3 bg-red-500/20 rounded-full text-red-400 border border-red-500/20"
+            className="p-2.5 md:p-3 bg-red-500/20 rounded-full text-red-400 border border-red-500/20"
           >
-            <X size={18} />
+            <X size={16} className="md:w-[18px] md:h-[18px]" />
           </motion.button>
         )}
 
         <AnimatePresence mode="wait">
           {showVoicePicker && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, x: 20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.8, x: 20 }}
-              className="absolute right-full mr-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex flex-col gap-2 shadow-2xl min-w-[120px]"
+              initial={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
+              animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
+              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex flex-col gap-2 shadow-2xl min-w-[140px] md:min-w-[120px]"
             >
               <div className="flex gap-1">
                 <button
                   onClick={() => speak('male')}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 md:py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                   title="Men Voice"
                 >
                   <User size={12} /> Men
@@ -199,7 +199,7 @@ const PoemCard: React.FC<{
                 <div className="w-[1px] bg-white/10" />
                 <button
                   onClick={() => speak('female')}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 md:py-2 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                   title="Women Voice"
                 >
                   <UserCheck size={12} /> Women

@@ -128,9 +128,9 @@ const IntelligenceView: React.FC = () => {
 
         <div className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:border-sky-500/30 transition-all group">
           <Database className="text-yellow-400 mb-6 group-hover:scale-110 transition-transform" size={32} />
-          <h4 className="text-xl font-bold text-white mb-4">Digital Sovereignty</h4>
+          <h4 className="text-xl font-bold text-white mb-4">Data Privacy</h4>
           <p className="text-slate-400 text-sm leading-relaxed mb-6">
-            Unlike closed AI silos (OpenAI/Google), AHI protocols run locally or on sovereign clouds. Your thoughts, your weights, your biases. Ownership is non-negotiable.
+            Unlike closed AI systems (OpenAI/Google), AHI tools run locally or on private servers. Your thoughts, your data, your control. Ownership is non-negotiable.
           </p>
           <div className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Status: Beta Access</div>
         </div>

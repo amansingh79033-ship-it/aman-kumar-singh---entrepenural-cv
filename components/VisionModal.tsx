@@ -43,14 +43,14 @@ const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose }) => {
         },
         {
             title: "Unchi Hai Building",
-            subtitle: "Sovereign Venture Stack",
-            content: "CuriousMinds (EdTech), Propsynx (100-Year PropTech Analysis), and Engine Ocean (Topic-Focused Pro Search). A portfolio built on first principles, solving foundational human problems.",
+            subtitle: "Independent Business Portfolio",
+            content: "CuriousMinds (EdTech), Propsynx (100-Year Property Analysis), and Engine Ocean (Topic-Focused Pro Search). A portfolio built on first principles, solving real human problems.",
             icon: <Globe size={48} className="text-green-400" />
         },
         {
             title: "The Vision",
             subtitle: "Scaling the Individual",
-            content: "To build a future where a single individual can match the output of a corporation. This is the era of the Sovereign Creative.",
+            content: "To build a future where a single person can match the output of a company. This is the era of the Independent Creator.",
             icon: <Activity size={48} className="text-purple-400" />
         }
     ];
@@ -68,7 +68,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose }) => {
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto" onClick={onClose} />
 
                 <motion.div
-                    drag={!isFullScreen}
+                    drag={typeof window !== 'undefined' && window.innerWidth >= 768 && !isFullScreen}
                     dragConstraints={{ left: -500, right: 500, top: -300, bottom: 300 }}
                     dragElastic={0.1}
                     initial={{ scale: 0.9, opacity: 0, y: 50 }}
@@ -76,21 +76,21 @@ const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose }) => {
                         scale: isFullScreen ? 1 : 1,
                         opacity: 1,
                         y: 0,
-                        width: isFullScreen ? "100%" : "800px",
-                        height: isFullScreen ? "100%" : "500px",
+                        width: isFullScreen ? "100%" : "min(90vw, 800px)",
+                        height: isFullScreen ? "100%" : "min(85vh, 500px)",
                         borderRadius: isFullScreen ? "0px" : "24px"
                     }}
                     exit={{ scale: 0.9, opacity: 0 }}
                     className={`bg-[#050505] border border-white/10 overflow-hidden shadow-2xl relative pointer-events-auto flex flex-col ${isFullScreen ? 'inset-0 fixed' : ''}`}
                 >
                     {/* Header / Drag Handle */}
-                    <div className="h-12 border-b border-white/5 flex items-center justify-between px-4 bg-white/[0.02] cursor-move active:cursor-grabbing z-20">
+                    <div className="h-12 border-b border-white/5 flex items-center justify-between px-3 md:px-4 bg-white/[0.02] md:cursor-move md:active:cursor-grabbing z-20">
                         <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" onClick={onClose} />
                             <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
                             <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" onClick={toggleFullScreen} />
                         </div>
-                        <div className="text-[10px] uppercase font-bold text-slate-500 tracking-[0.2em] select-none">
+                        <div className="text-[8px] md:text-[10px] uppercase font-bold text-slate-500 tracking-[0.1em] md:tracking-[0.2em] select-none truncate max-w-[150px] md:max-w-none">
                             AMANKUMAR.ARCHIVE // VISION.MP4
                         </div>
                         <div className="flex items-center gap-4">
@@ -104,7 +104,7 @@ const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     {/* Video Content Area */}
-                    <div className="flex-1 relative bg-black flex items-center justify-center p-12 overflow-hidden">
+                    <div className="flex-1 relative bg-black flex items-center justify-center p-4 md:p-8 lg:p-12 overflow-hidden">
                         {/* Background Animation */}
                         <div className="absolute inset-0 z-0">
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.1),transparent_70%)] opacity-50 animate-pulse" />
@@ -121,12 +121,12 @@ const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose }) => {
                                 transition={{ duration: 0.8 }}
                                 className="relative z-10 text-center max-w-3xl"
                             >
-                                <div className="inline-block mb-8 p-6 bg-white/5 rounded-full border border-white/10 backdrop-blur-md">
+                                <div className="inline-block mb-4 md:mb-8 p-4 md:p-6 bg-white/5 rounded-full border border-white/10 backdrop-blur-md">
                                     {slides[activeSlide].icon}
                                 </div>
-                                <h2 className="text-md md:text-xl text-sky-400 font-bold uppercase tracking-[0.3em] mb-4">{slides[activeSlide].subtitle}</h2>
-                                <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 leading-tight">{slides[activeSlide].title}</h1>
-                                <p className="text-lg md:text-2xl text-slate-400 font-light leading-relaxed">{slides[activeSlide].content}</p>
+                                <h2 className="text-[10px] md:text-md lg:text-xl text-sky-400 font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-2 md:mb-4">{slides[activeSlide].subtitle}</h2>
+                                <h1 className="text-2xl md:text-4xl lg:text-6xl font-display font-bold text-white mb-4 md:mb-8 leading-tight">{slides[activeSlide].title}</h1>
+                                <p className="text-sm md:text-lg lg:text-2xl text-slate-400 font-light leading-relaxed">{slides[activeSlide].content}</p>
                             </motion.div>
                         </AnimatePresence>
 
@@ -143,12 +143,12 @@ const VisionModal: React.FC<VisionModalProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     {/* Controls Overlay */}
-                    <div className="h-16 border-t border-white/5 bg-[#0a0a0a] flex items-center justify-between px-6 z-20">
+                    <div className="h-14 md:h-16 border-t border-white/5 bg-[#0a0a0a] flex items-center justify-between px-3 md:px-6 z-20">
                         <div className="flex items-center gap-4">
-                            <button onClick={togglePlay} className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform">
-                                {isPlaying ? <Pause size={16} fill="black" /> : <Play size={16} fill="black" className="ml-1" />}
+                            <button onClick={togglePlay} className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform active:scale-95">
+                                {isPlaying ? <Pause size={14} fill="black" className="md:w-4 md:h-4" /> : <Play size={14} fill="black" className="ml-0.5 md:w-4 md:h-4" />}
                             </button>
-                            <div className="text-xs font-mono text-slate-500">
+                            <div className="text-[10px] md:text-xs font-mono text-slate-500">
                                 00:0{activeSlide + 1} / 00:04
                             </div>
                         </div>

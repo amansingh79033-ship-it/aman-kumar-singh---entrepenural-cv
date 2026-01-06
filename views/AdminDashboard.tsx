@@ -242,57 +242,59 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             key="visitors"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="glass rounded-[2rem] md:rounded-[3rem] border-white/5 overflow-x-auto"
+                            className="glass rounded-2xl md:rounded-[3rem] border-white/5 overflow-hidden"
                         >
-                            <table className="w-full text-left border-collapse">
-                                <thead>
-                                    <tr className="border-b border-white/5 bg-white/[0.02]">
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Node IP</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Path Access</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Timestamp</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {visits.map((v) => (
-                                        <tr key={v.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
-                                            <td className="px-10 py-6">
-                                                <div className="flex items-center gap-3">
-                                                    <MapPin size={12} className="text-slate-500" />
-                                                    <span className="text-xs font-mono text-slate-300">{v.ip}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <span className="text-xs font-mono text-sky-400/80">{v.path}</span>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <div className="flex items-center gap-2 text-slate-500">
-                                                    <Clock size={12} />
-                                                    <span className="text-[10px] font-bold">{new Date(v.timestamp).toLocaleString()}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-10 py-6">
-                                                <span className={`px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${v.status === 'active' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-500'
-                                                    }`}>
-                                                    {v.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-10 py-6 text-right">
-                                                <button
-                                                    onClick={() => {
-                                                        const toggleVisitStatus = useStore.getState().toggleVisitStatus;
-                                                        toggleVisitStatus(v.id);
-                                                    }}
-                                                    className={`p-2 glass rounded-lg transition-all ${v.status === 'active' ? 'text-red-500 hover:text-red-400' : 'text-green-400 hover:text-green-300'}`}
-                                                >
-                                                    {v.status === 'active' ? <Lock size={14} /> : <Unlock size={14} />}
-                                                </button>
-                                            </td>
+                            <div className="overflow-x-auto scrollbar-hide">
+                                <table className="w-full text-left border-collapse min-w-[800px]">
+                                    <thead>
+                                        <tr className="border-b border-white/5 bg-white/[0.02]">
+                                            <th className="px-4 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500">Node IP</th>
+                                            <th className="px-4 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500">Path Access</th>
+                                            <th className="px-4 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500">Timestamp</th>
+                                            <th className="px-4 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</th>
+                                            <th className="px-4 md:px-10 py-4 md:py-6 text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Actions</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {visits.map((v) => (
+                                            <tr key={v.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
+                                                <td className="px-4 md:px-10 py-4 md:py-6">
+                                                    <div className="flex items-center gap-2 md:gap-3">
+                                                        <MapPin size={12} className="text-slate-500 flex-shrink-0" />
+                                                        <span className="text-[10px] md:text-xs font-mono text-slate-300">{v.ip}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 md:px-10 py-4 md:py-6">
+                                                    <span className="text-[10px] md:text-xs font-mono text-sky-400/80">{v.path}</span>
+                                                </td>
+                                                <td className="px-4 md:px-10 py-4 md:py-6">
+                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                        <Clock size={12} className="flex-shrink-0" />
+                                                        <span className="text-[9px] md:text-[10px] font-bold">{new Date(v.timestamp).toLocaleString()}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 md:px-10 py-4 md:py-6">
+                                                    <span className={`px-2 md:px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${v.status === 'active' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-500'
+                                                        }`}>
+                                                        {v.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 md:px-10 py-4 md:py-6 text-right">
+                                                    <button
+                                                        onClick={() => {
+                                                            const toggleVisitStatus = useStore.getState().toggleVisitStatus;
+                                                            toggleVisitStatus(v.id);
+                                                        }}
+                                                        className={`p-2 glass rounded-lg transition-all ${v.status === 'active' ? 'text-red-500 hover:text-red-400' : 'text-green-400 hover:text-green-300'}`}
+                                                    >
+                                                        {v.status === 'active' ? <Lock size={14} /> : <Unlock size={14} />}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                             {visits.length === 0 && (
                                 <div className="py-20 text-center text-slate-500 text-xs font-bold uppercase tracking-widest">No nodes detected in cycle</div>
                             )}

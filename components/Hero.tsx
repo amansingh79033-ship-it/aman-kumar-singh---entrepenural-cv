@@ -35,8 +35,9 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
       >
         <motion.div variants={item} className="mb-10 inline-flex items-center space-x-4 glass px-6 py-2 rounded-full border-sky-400/10">
           <div className="w-2 h-2 bg-yellow-200 rounded-full animate-pulse shadow-[0_0_10px_#fef08a]" />
+          <span className="text-yellow-100 font-display uppercase tracking-[0.5em] text-[8px] font-bold block mb-4">Personal Scribbles</span>
           <span className="text-yellow-100 font-display uppercase tracking-[0.5em] text-[8px] font-bold">
-            ARCHIVING THE SOVEREIGN INTELLECT PHENOMENON
+            BUILDING THE FUTURE OF HUMAN INTELLIGENCE
           </span>
         </motion.div>
 
@@ -66,7 +67,7 @@ const Hero: React.FC<HeroProps> = ({ onExplore, onWatchVision }) => {
           variants={item}
           className="text-slate-400 text-lg md:text-2xl max-w-2xl font-light leading-relaxed mb-16"
         >
-          A <span className="text-white font-medium">Problem Solver</span> deploying sovereign pedagogy and AHI protocols to unlock the top 1% of human potential.
+          A <span className="text-white font-medium">Problem Solver</span> using smart teaching methods and AI tools to unlock the top 1% of human potential.
         </motion.p>
 
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
