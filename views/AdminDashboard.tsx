@@ -31,9 +31,46 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     const [password, setPassword] = useState('');
     const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase' | 'resources'>('overview');
     const [loginError, setLoginError] = useState(false);
+    const [dashboardData, setDashboardData] = useState({
+        visits: [] as Visit[],
+        messages: [] as VoiceMessage[],
+        frozenIps: [] as string[],
+        showcaseItems: [] as ShowcaseItem[],
+        resources: [] as Resource[],
+    });
 
     // Store data
-    const { visits, messages, frozenIps, freezeIp, unfreezeIp } = useStore();
+    const { visits, messages, frozenIps, freezeIp, unfreezeIp, showcaseItems, resources, toggleVisitStatus } = useStore();
+
+    // Fetch data from centralized store
+    useEffect(() => {
+        if (isAuthenticated) {
+            const state = useStore.getState();
+            setDashboardData({
+                visits: state.visits,
+                messages: state.messages,
+                frozenIps: state.frozenIps,
+                showcaseItems: state.showcaseItems,
+                resources: state.resources,
+            });
+        }
+    }, [isAuthenticated]);
+
+    // Listen for changes in the store
+    useEffect(() => {
+        if (isAuthenticated) {
+            const unsubscribe = useStore.subscribe((state) => {
+                setDashboardData({
+                    visits: state.visits,
+                    messages: state.messages,
+                    frozenIps: state.frozenIps,
+                    showcaseItems: state.showcaseItems,
+                    resources: state.resources,
+                });
+            });
+            return unsubscribe;
+        }
+    }, [isAuthenticated]);
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
@@ -191,10 +228,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             exit={{ opacity: 0, y: -10 }}
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                         >
-                            <StatCard icon={<Eye className="text-sky-300" />} label="Total Visuals" value={visits.length.toString()} trend="+12.4%" />
-                            <StatCard icon={<Users className="text-yellow-200" />} label="Unique IPs" value={new Set(visits.map(v => v.ip)).size.toString()} trend="+4.1%" />
-                            <StatCard icon={<Mic2 className="text-sky-400" />} label="Neural Syncs" value={messages.length.toString()} trend="Live" />
-                            <StatCard icon={<AlertCircle className="text-red-400" />} label="Frozen Nodes" value={frozenIps.length.toString()} trend="Secure" />
+                            <StatCard icon={<Eye className="text-sky-300" />} label="Total Visuals" value={dashboardData.visits.length.toString()} trend="+12.4%" />
+                            <StatCard icon={<Users className="text-yellow-200" />} label="Unique IPs" value={new Set(dashboardData.visits.map(v => v.ip)).size.toString()} trend="+4.1%" />
+                            <StatCard icon={<Mic2 className="text-sky-400" />} label="Neural Syncs" value={dashboardData.messages.length.toString()} trend="Live" />
+                            <StatCard icon={<AlertCircle className="text-red-400" />} label="Frozen Nodes" value={dashboardData.frozenIps.length.toString()} trend="Secure" />
 
                             <div className="col-span-1 md:col-span-2 lg:col-span-3 glass rounded-[3rem] p-10 border-white/5">
                                 <div className="flex justify-between items-center mb-8">
@@ -206,7 +243,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                     </div>
                                 </div>
                                 <div className="h-64 flex items-end gap-1">
-                                    {visits.slice(0, 40).map((v, i) => (
+                                    {dashboardData.visits.slice(0, 40).map((v, i) => (
                                         <motion.div
                                             key={v.id}
                                             initial={{ height: 0 }}
@@ -221,7 +258,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                 <div>
                                     <h3 className="text-lg font-display font-bold mb-6">Recent Path Audits</h3>
                                     <div className="space-y-4">
-                                        {visits.slice(0, 5).map(v => (
+                                        {dashboardData.visits.slice(0, 5).map(v => (
                                             <div key={v.id} className="flex items-center gap-3">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-sky-400" />
                                                 <div className="flex-1">
@@ -256,7 +293,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {visits.map((v) => (
+                                        {dashboardData.visits.map((v) => (
                                             <tr key={v.id} className="border-b border-white/5 hover:bg-white/[0.01] transition-colors group">
                                                 <td className="px-4 md:px-10 py-4 md:py-6">
                                                     <div className="flex items-center gap-2 md:gap-3">
@@ -282,7 +319,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                                 <td className="px-4 md:px-10 py-4 md:py-6 text-right">
                                                     <button
                                                         onClick={() => {
-                                                            const toggleVisitStatus = useStore.getState().toggleVisitStatus;
                                                             toggleVisitStatus(v.id);
                                                         }}
                                                         className={`p-2 glass rounded-lg transition-all ${v.status === 'active' ? 'text-red-500 hover:text-red-400' : 'text-green-400 hover:text-green-300'}`}
@@ -295,7 +331,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                     </tbody>
                                 </table>
                             </div>
-                            {visits.length === 0 && (
+                            {dashboardData.visits.length === 0 && (
                                 <div className="py-20 text-center text-slate-500 text-xs font-bold uppercase tracking-widest">No nodes detected in cycle</div>
                             )}
                         </motion.div>
@@ -308,7 +344,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             animate={{ opacity: 1 }}
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                         >
-                            {messages.map((m) => (
+                            {dashboardData.messages.map((m) => (
                                 <div key={m.id} className="glass p-10 rounded-[2.5rem] border-white/5 hover:border-sky-400/30 transition-all flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start mb-8">
@@ -334,7 +370,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                     </button>
                                 </div>
                             ))}
-                            {messages.length === 0 && (
+                            {dashboardData.messages.length === 0 && (
                                 <div className="col-span-full py-20 glass rounded-[3rem] flex flex-col items-center justify-center opacity-50">
                                     <AlertCircle className="text-slate-500 mb-4" size={40} />
                                     <div className="text-slate-500 text-xs font-bold uppercase tracking-widest">No Neural Syncs Recorded</div>
@@ -366,14 +402,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-                                {(useStore.getState().showcaseItems || []).map((item, index) => (
+                                {dashboardData.showcaseItems.map((item, index) => (
                                     <MediaCard
                                         key={item.id}
                                         id={item.id}
                                         title={item.title}
                                         image={item.image}
                                         index={index}
-                                        total={useStore.getState().showcaseItems.length}
+                                        total={dashboardData.showcaseItems.length}
                                     />
                                 ))}
                             </div>
@@ -429,7 +465,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">
-                                {(useStore.getState().resources || []).map((resource) => (
+                                {dashboardData.resources.map((resource) => (
                                     <div key={resource.id} className="glass p-6 rounded-2xl border-white/5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
                                         <div className="flex items-center gap-6">
                                             <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-slate-500">

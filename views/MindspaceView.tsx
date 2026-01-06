@@ -11,59 +11,165 @@ const PoemCard: React.FC<{
 }> = ({ title, children, className = "", delay = 0, featured = false }) => {
   const [showVoicePicker, setShowVoicePicker] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
+  const [isPaused, setIsPaused] = React.useState(false);
   const [highlightRange, setHighlightRange] = React.useState<{ start: number; end: number } | null>(null);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const [playbackSpeed, setPlaybackSpeed] = React.useState(0.85);
+  const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
+  const [pausePosition, setPausePosition] = React.useState<number>(0);
+  const backgroundAudioRef = React.useRef<HTMLAudioElement | null>(null);
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
     setIsSpeaking(false);
+    setIsPaused(false);
     setHighlightRange(null);
+    setPausePosition(0);
+    utteranceRef.current = null;
+  };
+
+  const pauseSpeaking = () => {
+    if (isSpeaking && !isPaused) {
+      window.speechSynthesis.pause();
+      setIsPaused(true);
+      setIsSpeaking(false);
+      
+      // Pause background music as well
+      pauseBackgroundMusic();
+    }
+  };
+
+  const resumeSpeaking = () => {
+    if (isPaused) {
+      window.speechSynthesis.resume();
+      setIsPaused(false);
+      setIsSpeaking(true);
+      
+      // Resume background music as well
+      resumeBackgroundMusic();
+    }
   };
 
   const speak = (gender: 'male' | 'female') => {
+    if (isPaused) {
+      // If we're paused, just resume from where we left off
+      resumeSpeaking();
+      return;
+    }
+    
     setShowVoicePicker(false);
     window.speechSynthesis.cancel();
+    setPausePosition(0);
+    setIsPaused(false);
 
     // Targeted extraction to avoid UI text or duplicated titles
     const textElements = contentRef.current?.querySelectorAll('p');
     let poemContent = "";
     if (textElements && textElements.length > 0) {
-      poemContent = Array.from(textElements).map(el => el.innerText).join('\n');
+      // Extract text content and add poetic pauses
+      poemContent = Array.from(textElements).map(el => (el as HTMLElement).innerText
+        .replace(/[,.!?;:]/g, ' — ') // Replace punctuation with em-dashes for natural pauses
+        .replace(/\|2\|/g, '') // Remove special formatting characters
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .replace(/\s*—\s*/g, ' — ') // Ensure proper spacing around em-dashes
+      ).join('\n\n\n\n'); // Add extra line breaks for longer pauses between stanzas - more dramatic effect
     } else {
-      poemContent = contentRef.current?.innerText || "";
+      poemContent = (contentRef.current as HTMLElement)?.innerText || "";
     }
 
-    const fullText = title ? `${title}. ${poemContent}` : poemContent;
+    const fullText = title ? `${title}.\n\n${poemContent}` : poemContent;
     const utterance = new SpeechSynthesisUtterance(fullText);
+    utteranceRef.current = utterance;
 
     const voices = window.speechSynthesis.getVoices();
-    const hiVoices = voices.filter(v => v.lang.startsWith('hi') || (v.lang.startsWith('en-IN') && gender === 'male'));
+    // Filter voices for Hindi/Indian languages
+    const hiVoices = voices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
 
-    let selectedVoice = hiVoices.find(v => {
-      const name = v.name.toLowerCase();
-      if (gender === 'male') {
-        return name.includes('male') || name.includes('david') || name.includes('ravi') || name.includes('mark') || name.includes('guy');
-      } else {
-        return name.includes('female') || name.includes('google') || name.includes('heera') || name.includes('zira');
+    let selectedVoice = null;
+    if (gender === 'male') {
+      // Prioritize male voices for Hindi/Indian languages that sound more expressive
+      selectedVoice = hiVoices.find(v => 
+        v.name.toLowerCase().includes('male') || 
+        v.name.toLowerCase().includes('ravi') || 
+        v.name.toLowerCase().includes('david') ||
+        v.name.toLowerCase().includes('mark') ||
+        v.name.toLowerCase().includes('guy') ||
+        v.name.toLowerCase().includes('suresh') ||
+        v.name.toLowerCase().includes('ramesh')
+      );
+      
+      // If no specific male voice found, try to find a voice with more emotional but firm voice quality
+      if (!selectedVoice) {
+        selectedVoice = hiVoices.find(v => 
+          v.name.toLowerCase().includes('standard') ||
+          v.name.toLowerCase().includes('premium') ||
+          v.name.toLowerCase().includes('expressive')
+        );
       }
-    }) || hiVoices[0];
+    } else {
+      // Prioritize female voices for Hindi/Indian languages that sound more expressive
+      selectedVoice = hiVoices.find(v => 
+        v.name.toLowerCase().includes('female') || 
+        v.name.toLowerCase().includes('lena') || 
+        v.name.toLowerCase().includes('shwati') || 
+        v.name.toLowerCase().includes('zara') ||
+        v.name.toLowerCase().includes('sangeeta') ||
+        v.name.toLowerCase().includes('swathi')
+      );
+      
+      // If no specific female voice found, try to find a voice with more emotional quality
+      if (!selectedVoice) {
+        selectedVoice = hiVoices.find(v => 
+          v.name.toLowerCase().includes('standard') ||
+          v.name.toLowerCase().includes('premium') ||
+          v.name.toLowerCase().includes('expressive')
+        );
+      }
+    }
+    
+    // Fallback to any available Hindi/Indian voice
+    if (!selectedVoice) {
+      selectedVoice = hiVoices[0];
+    }
+    
+    // If no Hindi voice found, use any available voice
+    if (!selectedVoice) {
+      selectedVoice = voices[0];
+    }
 
     if (selectedVoice) utterance.voice = selectedVoice;
 
     utterance.lang = 'hi-IN';
-    // For a 40-year-old matured man, we use a slightly lower pitch and steady rate
-    utterance.pitch = gender === 'female' ? 1.0 : 0.85;
-    utterance.rate = playbackSpeed;
+    // For poetic delivery, use more expressive parameters
+    utterance.pitch = gender === 'female' ? 0.85 : 0.6; // More expressive pitch for shayar-like delivery
+    utterance.rate = playbackSpeed * 0.45; // Slower for better poetic delivery and emotional expression
+    utterance.volume = 0.8; // Slightly higher volume for better clarity
 
-    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      // Set initial pitch based on gender for emotional delivery
+      if (gender === 'female') {
+        utterance.pitch = 0.85;
+      } else {
+        utterance.pitch = 0.6;
+      }
+      
+      // Start background music when speech starts
+      startBackgroundMusic();
+    };
     utterance.onend = () => {
       setIsSpeaking(false);
       setHighlightRange(null);
+      
+      // Stop background music when speech ends
+      stopBackgroundMusic();
     };
     utterance.onerror = () => {
       setIsSpeaking(false);
       setHighlightRange(null);
+      
+      // Stop background music if there's an error
+      stopBackgroundMusic();
     };
 
     utterance.onboundary = (event) => {
@@ -72,8 +178,38 @@ const PoemCard: React.FC<{
         // Estimate word length if not provided by browser
         const end = start + (event.charLength || fullText.slice(start).split(/\s|[,.!]/)[0].length);
         setHighlightRange({ start, end });
+        
+        // Add dynamic pitch variations based on emotional content
+        // For shayar-like delivery, adjust pitch based on word meaning
+        const currentWord = fullText.substring(start, end).toLowerCase();
+        
+        // Words that should have more emotional emphasis
+        const emotionalWords = ['मोहब्बत', 'दिल', 'जज़्बात', 'ग़म', 'याद', 'तकलीफ', 'ख़ुशी', 'मोहब्बतन', 'दर्द', 'इश्क़', 'हर्ज़ा', 'ख़्वाब', 'आह', 'सांस', 'ज़िंदगी', 'मौत', 'तमाशा', 'नज़र', 'आइना', 'मिलाप', 'विछोह', 'साहिर', 'शहंशाह', 'ताज', 'क़त्ल', 'ज़ख्म', 'नम', 'हवा', 'तलवार', 'साहिब', 'ईसार', 'हिफ़ाज़त', 'ज़ार', 'फ़रेबी', 'अना', 'अफ़गार', 'औज़ार', 'इस्तिबशार', 'रख़्श', 'आफ़ताब', 'रब-अता', 'आफ़ियत-बेज़ार', 'गलतफहमी', 'साथ', 'हमसफ़र', 'मुस्कुरा', 'क़तरा', 'क़तल', 'शाह', 'दस्तार', 'ख़ौफ़', 'नाराज़गी', 'हार', 'मेरा', 'तुम्हारा', 'हम', 'साथ', 'तुम', 'हमारा'];
+        
+        if (emotionalWords.some(word => currentWord.includes(word.toLowerCase()))) {
+          // Increase pitch slightly for emotional words
+          if (gender === 'female') {
+            utterance.pitch = 0.9 + Math.random() * 0.05;
+          } else {
+            utterance.pitch = 0.65 + Math.random() * 0.05;
+          }
+        } else {
+          // Normal pitch variation
+          if (gender === 'female') {
+            utterance.pitch = 0.8 + Math.random() * 0.05; // Slight pitch variation
+          } else {
+            utterance.pitch = 0.55 + Math.random() * 0.05; // Slight pitch variation
+          }
+        }
+      }
+      // Add slight pause at sentence/paragraph boundaries for poetic effect
+      if (event.name === 'sentence' || event.name === 'paragraph') {
+        setTimeout(() => {
+          // Add a brief pause for poetic effect
+        }, 500); // Increased pause for more dramatic effect
       }
     };
+
 
     window.speechSynthesis.speak(utterance);
   };
@@ -127,7 +263,7 @@ const PoemCard: React.FC<{
 
         // Handle specific components or elements
         const sub = renderChildren(subChildren, currentOffset);
-        currentOffset = sub.offset || currentOffset + (child.props.children ? 0 : 0); // Very rough innerText estimation
+        currentOffset = (sub as any).offset || currentOffset + (child.props.children ? 0 : 0); // Very rough innerText estimation
 
         // For common elements like p, span, div
         if (typeof child.type === 'string') {
@@ -173,10 +309,19 @@ const PoemCard: React.FC<{
           <motion.button
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ repeat: Infinity, duration: 1 }}
-            onClick={stopSpeaking}
-            className="p-2.5 md:p-3 bg-red-500/20 rounded-full text-red-400 border border-red-500/20"
+            onClick={isPaused ? resumeSpeaking : pauseSpeaking}
+            className="p-2.5 md:p-3 bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
           >
-            <X size={16} className="md:w-[18px] md:h-[18px]" />
+            {isPaused ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
+            )}
           </motion.button>
         )}
 
@@ -252,6 +397,49 @@ const PoemCard: React.FC<{
       <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
     </motion.div>
   );
+  
+  // Function to start background music
+  const startBackgroundMusic = () => {
+    // Create or reuse audio element for background music
+    if (!backgroundAudioRef.current) {
+      // Create a new audio element with a Sufi/flute sound URL
+      // In a real implementation, this would point to actual Sufi flute/sitar music
+      backgroundAudioRef.current = new Audio();
+      
+      // For now, we'll set a placeholder URL that would be replaced with actual Sufi music
+      // In a real implementation, you would use actual audio files
+      backgroundAudioRef.current.src = ''; // Placeholder - should be replaced with actual Sufi flute/sitar music URL
+      // Example: backgroundAudioRef.current.src = 'path/to/sufi-flute-sitar.mp3';
+      backgroundAudioRef.current.loop = true;
+      backgroundAudioRef.current.volume = 0.2; // Mild volume
+    }
+    
+    // Play the background music
+    backgroundAudioRef.current.currentTime = 0; // Reset to beginning
+    backgroundAudioRef.current.play().catch(e => console.log('Background music play prevented:', e));
+  };
+  
+  // Function to stop background music
+  const stopBackgroundMusic = () => {
+    if (backgroundAudioRef.current) {
+      backgroundAudioRef.current.pause();
+      backgroundAudioRef.current.currentTime = 0;
+    }
+  };
+  
+  // Function to pause background music
+  const pauseBackgroundMusic = () => {
+    if (backgroundAudioRef.current) {
+      backgroundAudioRef.current.pause();
+    }
+  };
+  
+  // Function to resume background music
+  const resumeBackgroundMusic = () => {
+    if (backgroundAudioRef.current) {
+      backgroundAudioRef.current.play().catch(e => console.log('Background music play prevented:', e));
+    }
+  };
 };
 
 const MindspaceView: React.FC = () => {
@@ -358,6 +546,153 @@ const MindspaceView: React.FC = () => {
             <p>और,<br />चाँद की बातें करने वाले उनके अज़ीज़ हुए! ।२।<br /><span className="text-sky-200/80">दीद को तरस रहे, जाहिल जो चाँद तोड़ के लाए हैं!</span></p>
           </PoemCard>
         </div>
+      </div>
+
+      <div className="mt-20 space-y-20">
+        <PoemCard title="दस्तार" featured>
+          <p>उनको छू कर हवा कहती है मुझसे</p>
+          <p className="text-sky-200/80">तमाशा देखेंगे, ख़ुद को साहिब-ए-ईसार बताने वाले</p>
+          <p>उनकी आँखों में देखने वाले जाँ हिफ़ाज़त रखना</p>
+          <p className="text-sky-200/80">खुले-आम घूमते हैं ये तलवार दिखाने वाले</p>
+          <p>ये बार-बार ख़्वाबों में उसको ख़्वाब दिखाने वाले</p>
+          <p className="text-sky-200/80">एक क़त्ल करके सो रहे हैं ख़ुद को ज़ार दिखाने वाले</p>
+          <p>उसकी आँखें नम देख के ये मालूम हुआ मुझको</p>
+          <p className="text-sky-200/80">अदा-कार हैं ये फ़रेबी, ख़ुद को अना अफ़गार दिखाने वाले</p>
+          <p>मुझको ज़िंदा समझ कर ज़ेहन से उतारा होगा</p>
+          <p className="text-sky-200/80">मेरी क़ब्र से लिपटे पड़े हैं, मुझको औज़ार दिखाने वाले</p>
+          <p>जो गुलाब दे के गए हैं, काँटे-पसंद लोग मुझको</p>
+          <p className="text-sky-200/80">मुस्कुरा रहे हैं, इस्तिबशार सुनाने वाले</p>
+          <p>एक क़तरा भर कामयाबी न संभले "अमन" जिनसे</p>
+          <p className="text-sky-200/80">शाह आँकते हैं ख़ुद को, मेरे दस्तार बनाने वाले</p>
+          <p>नहीं रख़्श-ए-ख़ौफ़ नहीं, एक नाराज़गी भर है</p>
+          <p className="text-sky-200/80">तुम्हारा नाम नहीं लेते, आफ़ताब के जानकार कहलाने वाले</p>
+          <p>ये क्या तमाशा है मोहब्बत का</p>
+          <p className="text-sky-200/80">मेरा आशिक़ बता रहे हैं मुझको हार के घर जाने वाले</p>
+          <p>और</p>
+          <p>एक क़िस्म के लोग तो होंगे उनसे रब-अता है जिनको</p>
+          <p className="text-sky-200/80">और फिर हम जैसे हैं, आफ़ियत-बेज़ार नज़र आने वाले</p>
+          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+        </PoemCard>
+
+        <PoemCard title="आइनों के शक़्ल">
+          <p>एक तरफ़ देखा तो उसकी आँखें दिख रही थी</p>
+          <p className="text-sky-200/80">एक तरफ़ सीने में जैसे खंजर उतर रहा था।</p>
+          <p>हमने निकाला दिल अपना हथेली पर रख दिया</p>
+          <p className="text-sky-200/80">मेरी ज़ाँ इसी बात पर वो मुझसे झगड़ रहा था।</p>
+          <p>वो मेरा नाम लेता है ऐसे |2|</p>
+          <p className="text-sky-200/80">कोई क़त्ल करके मुकर रहा था।</p>
+          <p>फ़क़त एक आदमी था उस आईने के सामने,</p>
+          <p className="text-sky-200/80">आईने में जैसे कोई भीड़ उमड़ रहा था ।</p>
+          <p>ज़ेहन में सोचा था एक शहर रंग का</p>
+          <p className="text-sky-200/80">रंग जो उसकी आँखों से उतर रहा था।</p>
+          <p>और</p>
+          <p>जिसे ज़ेहन से निकालने की ज़हमत है सारी ।2|</p>
+          <p className="text-sky-200/80">वो मेरे सीने में घर कर रहा था ।।</p>
+          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+        </PoemCard>
+
+        <PoemCard title="ताका-झाँकी">
+          <p>इन्हें समंदर से मिलना है, और किनारे ढूँढते हैं,</p>
+          <p className="text-sky-200/80">ये ज़मीन पे रहने वाले हैं, जो सितारे ढूँढते हैं।</p>
+          <p>सच पूछो तो अपने गिरेबाँ का पता नहीं इन्हें,</p>
+          <p className="text-sky-200/80">ये, ये जो चाँद में भी दरारें ढूँढते हैं।</p>
+          <p className="mt-4 text-sky-200/80">&#123; Distracted Self love&#125;</p>
+          <p className="mt-4">They long to meet the ocean, those who seek a shore,</p>
+          <p className="text-sky-200/80">Yet they are earthbound souls, chasing stars evermore.</p>
+          <p>Truth be told, they fail to know the land they tread,</p>
+          <p className="text-sky-200/80">For they search for cracks in the moon instead.</p>
+          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+        </PoemCard>
+
+        <PoemCard title="नई जगह है">
+          <p>नई जगह है,</p>
+          <p className="text-sky-200/80">ये शानदार नुमाइश की चीज़ हवेली।</p>
+          <p>लिपटने को कुछ,</p>
+          <p className="text-sky-200/80">एक कोना मेरे गाँव से बस कम लगता है।</p>
+          <p>दिन गुज़रता रहा</p>
+          <p className="text-sky-200/80">एक अंजान ख़याल के साथ,</p>
+          <p>मेरी हँसी को</p>
+          <p className="text-sky-200/80">ये अज़नवी मेरा ज़ख़्म कहता है।</p>
+          <p>वो एक ख़याल</p>
+          <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+          <p>वो एक ख़याल</p>
+          <p className="text-sky-200/80">ऐसे मुकरता है मुझसे,</p>
+          <p>जैसे सड़क से उठाया</p>
+          <p className="text-sky-200/80">किसी ग़ैर का हम-ग़म लगता है।</p>
+          <p>किसने मोड़ा है</p>
+          <p className="text-sky-200/80">सच का स्वाद</p>
+          <p>कड़वाहट की ओर,</p>
+          <p className="text-sky-200/80">जो खड़ा है मरहम लिए,</p>
+          <p>वो भी बेरहम लगता है।</p>
+          <p>अजीब सी एक जगह है</p>
+          <p className="text-sky-200/80">शहर नाम का उस तरफ़,</p>
+          <p>वहाँ ख़ुशियाँ जैसे मरा हुआ</p>
+          <p className="text-sky-200/80">कोई वहम लगता है।</p>
+          <p>फिर एक रात</p>
+          <p className="text-sky-200/80">टहलते हुए</p>
+          <p>चाँद को निहारते,</p>
+          <p className="text-sky-200/80">ये सवाल पूछा मन ने…,</p>
+          <p>अच्छा,</p>
+          <p className="text-sky-200/80">एक पत्थर को</p>
+          <p>एक मिसाल होने में,</p>
+          <p className="text-sky-200/80">आख़िर…?</p>
+          <p>कितना ज़नम लगता है?</p>
+          <p className="text-sky-200/80">ज़हन के किसी कोने से</p>
+          <p>चिल्लाती एक आवाज़ आती है—</p>
+          <p className="text-sky-200/80">मरते हैं लोग,</p>
+          <p>पत्थर बेज़ान होते हैं।</p>
+          <p className="text-sky-200/80">पत्थर ही बताएगा</p>
+          <p>मरे रहने में</p>
+          <p className="text-sky-200/80">कितना संयम लगता है?</p>
+          <p>सवाल फिर ये भी कि</p>
+          <p className="text-sky-200/80">अगर मरते हैं लोग</p>
+          <p>झूठी क़समों के</p>
+          <p className="text-sky-200/80">सिरहाने आकर,</p>
+          <p>तो फिर एक जीवन को</p>
+          <p className="text-sky-200/80">जीने भर में</p>
+          <p>ये इतना इल्म</p>
+          <p className="text-sky-200/80">क्यों लगता है?</p>
+          <p>और अचानक</p>
+          <p className="text-sky-200/80">ज़हन शांत।</p>
+          <p>एक कारण,</p>
+          <p className="text-sky-200/80">एक जवाब,</p>
+          <p>और एक कोना ढूँढते हुए,</p>
+          <p className="text-sky-200/80">मानो एक बोझ को</p>
+          <p>एक कंधे से</p>
+          <p className="text-sky-200/80">दूसरे कंधे पर</p>
+          <p>सरियाते हुए</p>
+          <p className="text-sky-200/80">एक आवाज़ गूँजती है —</p>
+          <p>"अरे!</p>
+          <p className="text-sky-200/80">ना ग़म की गुंजाइश है,</p>
+          <p>कहाँ कोई वहम बचता है।</p>
+          <p className="text-sky-200/80">ना किसी इल्म की है ज़रूरत—</p>
+          <p>सर उठाओ!</p>
+          <p className="text-sky-200/80">क्यों शर्म लगता है?</p>
+          <p>इस जीवन को काटना है</p>
+          <p className="text-sky-200/80">तो सोच के आँगन से</p>
+          <p>निकल जाना—बहार।</p>
+          <p className="text-sky-200/80">पर गर जीना हो,</p>
+          <p>तो सोच से सिमट कर सुनना —</p>
+          <p className="text-sky-200/80">एक टुकड़ा काग़ज़ का,</p>
+          <p>एक क़लम लगता है।</p>
+          <p className="text-sky-200/80">एक सड़क कील का,</p>
+          <p>और बस</p>
+          <p className="text-sky-200/80">इक क़दम लगता है।"</p>
+          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+        </PoemCard>
+
+        <PoemCard title="Galatfehmi {गलतफहमी}">
+          <p>मोहब्बतन रखा उसके कदमों में ताज शहंशाह,</p>
+          <p className="text-sky-200/80">हम बताएं? कैसे हुआ बरबाद शहंशाह? </p>
+          <div className="h-4" />
+          <p className="text-sky-200/80">baahon me bharkar samandar puchta hai aman se katra</p>
+          <p className="text-sky-200/80">Saansein bachi hai ? ya karu tumhe</p>
+          <p className="text-sky-200/80">aazad Shah-Anshan !</p>
+          <div className="h-4" />
+          <p className="text-sky-200/80">&#123; बाहों में भरकर समंदर पूछता है अमन से कतरा ,</p>
+          <p className="text-sky-200/80">सांसें बची हैं? या कर दूँ तुम्हें आज़ाद शहंशाह? &#125;</p>
+          <p className="mt-4 text-sky-400 font-bold">— अमन</p>
+        </PoemCard>
       </div>
     </div>
   );

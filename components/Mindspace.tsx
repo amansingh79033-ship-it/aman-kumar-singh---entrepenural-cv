@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 
 const Mindspace: React.FC = () => {
   return (
-    <><section id="mindspace" className="py-40 px-6 relative overflow-hidden">
+    <section id="mindspace" className="py-40 px-6 relative overflow-hidden">
       {/* Background Floating Text */}
       <div className="absolute inset-0 opacity-5 pointer-events-none select-none flex items-center justify-center overflow-hidden">
         <div className="text-[20vw] font-display font-bold whitespace-nowrap -rotate-12">SAHIR SIKANDAR AMAN</div>
@@ -47,16 +46,18 @@ const Mindspace: React.FC = () => {
               <p>मर गए पर चिल्ला रही है ख़ामोशी,।२। <br />इतना न पूछ सका, हमें कब विदा करेंगे।</p>
             </div>
           </motion.div>
-        </div><div className="mt-40 text-center">
+        </div>
+        <div className="mt-40 text-center">
           <div className="glass p-12 rounded-[3rem] border-sky-400/20 inline-block max-w-2xl">
             <h4 className="text-2xl font-display text-white mb-6 uppercase tracking-widest italic">“ क्या हूँ मैं? “</h4>
             <div className="text-slate-400 space-y-4">
-              <p>जब लगेगा कुछ फिसल सा रहा है हाथों से… कस के पकड़ूँगा नहीं, छोड़ दूँगा ।</p>
+              <p>जब लगेगा कुछ फिसल सा रहा है हाथों से… कस के पकड़ूगा नहीं, छोड़ दूँगा ।</p>
               <p>जब भी धूल दिखेगी रिश्तों पर मेरे .. उसे फूकूँगा एक बार, फिर तोड़ दूँगा ।</p>
               <p>मुझे मारने की ज़ुर्रत तो फ़ज़ूल है, एक गोली हो जो जाँ लेले, मैं दो लूँगा ।</p>
             </div>
           </div>
-        </div><div className="mt-40 text-center">
+        </div>
+        <div className="mt-40 text-center">
           <div className="glass p-12 rounded-[3rem] border-yellow-400/20 inline-block max-w-3xl">
             <h4 className="text-2xl font-display text-yellow-100 mb-6 uppercase tracking-widest italic">" पत्थर के ज़ुबाँ "</h4>
             <div className="text-slate-300 space-y-4 text-left">
@@ -130,9 +131,9 @@ const Mindspace: React.FC = () => {
               <p className="text-slate-400">Ye latka hua haqiqat me badal jana chahta tha !</p>
             </div>
           </div>
-        </div></>
-    </div >
-    </section >
+        </div>
+      </div>
+    </section>
   );
 };
 
