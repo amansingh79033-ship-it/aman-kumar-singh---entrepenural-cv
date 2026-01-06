@@ -1,0 +1,13 @@
+This is a placeholder file for the Sufi flute and sitar background music.
+
+To implement the actual background music:
+
+1. Replace this file with an actual audio file named "sufi-flute-sitar.mp3"
+2. The audio should feature:
+   - Soulful Sufi flute melodies
+   - Complementary sitar accompaniment
+   - Loopable format for continuous playback
+   - Mild volume level (around 20%)
+   - Duration of at least 30 seconds for seamless looping
+
+The current implementation will fall back to a silent audio when this file is not present.

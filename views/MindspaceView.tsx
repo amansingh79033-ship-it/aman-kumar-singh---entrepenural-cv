@@ -23,20 +23,30 @@ const PoemCard: React.FC<{
   React.useEffect(() => {
     // On mobile devices, audio playback often requires user interaction first
     const handleUserInteraction = () => {
-      if (backgroundAudioRef.current && backgroundAudioRef.current.paused) {
-        backgroundAudioRef.current.play().catch(e => console.log('Background music play prevented:', e));
+      if (backgroundAudioRef.current) {
+        const playPromise = backgroundAudioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              // Playback started successfully
+            })
+            .catch(e => {
+              console.log('Background music play prevented:', e);
+            });
+        }
       }
-      // Remove the event listener after first interaction
+      
+      // Remove the event listener after first interaction to prevent multiple calls
       document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('mousedown', handleUserInteraction);
     };
 
     document.addEventListener('touchstart', handleUserInteraction);
-    document.addEventListener('click', handleUserInteraction);
+    document.addEventListener('mousedown', handleUserInteraction);
 
     return () => {
       document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('click', handleUserInteraction);
+      document.removeEventListener('mousedown', handleUserInteraction);
     };
   }, []);
 
@@ -418,29 +428,45 @@ const PoemCard: React.FC<{
       <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
     </motion.div>
   );
-  
   // Function to start background music
   const startBackgroundMusic = () => {
     // Create or reuse audio element for background music
     if (!backgroundAudioRef.current) {
       // Create a new audio element with a Sufi/flute sound URL
-      // Using a silent placeholder that can be replaced with actual Sufi flute/sitar music
       backgroundAudioRef.current = new Audio();
       
-      // In a real implementation, this would point to actual Sufi flute/sitar music
-      // The actual Sufi flute/sitar music loaded from assets
+      // Try to load the actual Sufi flute/sitar music
       backgroundAudioRef.current.src = '/assets/sufi-flute-sitar.mp3';
-      // Fallback to silent audio if the asset is not available
-      backgroundAudioRef.current.onerror = () => {
-        backgroundAudioRef.current!.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAAAAAA';
-      };
       backgroundAudioRef.current.loop = true;
       backgroundAudioRef.current.volume = 0.2; // Mild volume
+      
+      // Preload the audio to improve playback experience
+      backgroundAudioRef.current.preload = 'auto';
+      
+      // Fallback to silent audio if the asset is not available
+      backgroundAudioRef.current.onerror = () => {
+        console.warn('Sufi flute/sitar music not found, using silent fallback');
+        backgroundAudioRef.current!.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAAAAAA';
+        backgroundAudioRef.current!.load();
+      };
+      
+      // Load the audio to prepare for playback
+      backgroundAudioRef.current.load();
     }
     
-    // Play the background music
-    backgroundAudioRef.current.currentTime = 0; // Reset to beginning
-    backgroundAudioRef.current.play().catch(e => console.log('Background music play prevented:', e));
+    // Play the background music with error handling
+    const playPromise = backgroundAudioRef.current.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          // Playback started successfully
+        })
+        .catch(e => {
+          console.log('Background music play prevented:', e);
+          // On mobile devices, we might need to wait for a user interaction
+          // The useEffect at component level handles this
+        });
+    }
   };
   
   // Function to stop background music
@@ -448,6 +474,8 @@ const PoemCard: React.FC<{
     if (backgroundAudioRef.current) {
       backgroundAudioRef.current.pause();
       backgroundAudioRef.current.currentTime = 0;
+      // Reset the audio element to ensure it's ready for next playback
+      backgroundAudioRef.current.load();
     }
   };
   
@@ -461,7 +489,16 @@ const PoemCard: React.FC<{
   // Function to resume background music
   const resumeBackgroundMusic = () => {
     if (backgroundAudioRef.current) {
-      backgroundAudioRef.current.play().catch(e => console.log('Background music play prevented:', e));
+      const playPromise = backgroundAudioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Playback resumed successfully
+          })
+          .catch(e => {
+            console.log('Background music play prevented:', e);
+          });
+      }
     }
   };
 };
