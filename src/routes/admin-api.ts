@@ -1,114 +1,112 @@
-import express from 'express';
-import { useStore } from '../lib/store';
+// Frontend API client for admin functionality
+// This file provides functions to interact with the Zustand store
+import { useStore } from '../../lib/store';
 
-const router = express.Router();
+// API client functions to interact with the Zustand store
 
-// Server-side API endpoint to fetch admin dashboard data
-router.get('/dashboard-data', (req, res) => {
+// Fetch admin dashboard data
+export const fetchDashboardData = async () => {
   try {
-    // Get data from the centralized store
-    const { visits, messages, frozenIps, showcaseItems, resources } = useStore.getState();
-    
-    res.json({
-      visits,
-      messages,
-      frozenIps,
-      showcaseItems,
-      resources,
-      totalVisits: visits.length,
-      uniqueIPs: [...new Set(visits.map(v => v.ip))].length,
-      neuralSyncs: messages.length,
-      frozenNodes: frozenIps.length
-    });
+    const state = useStore.getState();
+    return {
+      visits: state.visits,
+      messages: state.messages,
+      frozenIps: state.frozenIps,
+      showcaseItems: state.showcaseItems,
+      resources: state.resources,
+      totalVisits: state.visits.length,
+      uniqueIPs: new Set(state.visits.map(v => v.ip)).size,
+      neuralSyncs: state.messages.length,
+      frozenNodes: state.frozenIps.length
+    };
   } catch (error) {
     console.error('Error fetching admin dashboard data:', error);
-    res.status(500).json({ error: 'Failed to fetch dashboard data' });
+    throw new Error('Failed to fetch dashboard data');
   }
-});
+};
 
-// Server-side API endpoint to update visit status
-router.patch('/visit/:id/status', (req, res) => {
+// Update visit status
+export const updateVisitStatus = async (visitId: string, status: 'active' | 'frozen') => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const state = useStore.getState();
+    const visit = state.visits.find(v => v.id === visitId);
     
-    // Update visit status in the centralized store
-    const { toggleVisitStatus } = useStore.getState();
-    toggleVisitStatus(id);
+    if (!visit) {
+      throw new Error('Visit not found');
+    }
     
-    res.json({ success: true });
+    // Toggle the visit status using the store function
+    state.toggleVisitStatus(visitId);
+    
+    return { success: true };
   } catch (error) {
     console.error('Error updating visit status:', error);
-    res.status(500).json({ error: 'Failed to update visit status' });
+    throw new Error('Failed to update visit status');
   }
-});
+};
 
-// Server-side API endpoint to add showcase frame
-router.post('/showcase', (req, res) => {
+// Add showcase frame
+export const addShowcaseFrame = async (title: string) => {
   try {
-    const { title } = req.body;
+    const state = useStore.getState();
     
-    // Add new showcase frame to the centralized store
-    const { addShowcaseFrame } = useStore.getState();
-    const newItem = addShowcaseFrame('', title);
+    // Add new showcase frame using the store function
+    state.addShowcaseFrame('', title);
     
-    res.json({ success: true, item: newItem });
+    // Find the newly added item to return it
+    const newItem = state.showcaseItems[state.showcaseItems.length - 1];
+    
+    return { success: true, item: newItem };
   } catch (error) {
     console.error('Error adding showcase frame:', error);
-    res.status(500).json({ error: 'Failed to add showcase frame' });
+    throw new Error('Failed to add showcase frame');
   }
-});
+};
 
-// Server-side API endpoint to remove showcase frame
-router.delete('/showcase/:id', (req, res) => {
+// Remove showcase frame
+export const removeShowcaseFrame = async (id: string) => {
   try {
-    const { id } = req.params;
+    const state = useStore.getState();
     
-    // Remove showcase frame from the centralized store
-    const { removeShowcaseFrame } = useStore.getState();
-    removeShowcaseFrame(id);
+    // Remove showcase frame using the store function
+    state.removeShowcaseFrame(id);
     
-    res.json({ success: true });
+    return { success: true };
   } catch (error) {
     console.error('Error removing showcase frame:', error);
-    res.status(500).json({ error: 'Failed to remove showcase frame' });
+    throw new Error('Failed to remove showcase frame');
   }
-});
+};
 
-// Server-side API endpoint to manage resources
-router.post('/resources', (req, res) => {
+// Add resource
+export const addResource = async (resourceData: { name: string, url: string, type: 'video' | 'image' | 'pdf' | 'archive' | 'other', size: number }) => {
   try {
-    const { name, url, type, size } = req.body;
+    const state = useStore.getState();
     
-    // Add new resource to the centralized store
-    const { addResource } = useStore.getState();
-    const newResource = addResource({
-      name,
-      url,
-      type,
-      size
-    });
+    // Add new resource using the store function
+    state.addResource(resourceData);
     
-    res.json({ success: true, resource: newResource });
+    // Find the newly added resource to return it
+    const newResource = state.resources[0]; // Added at the beginning of the array
+    
+    return { success: true, resource: newResource };
   } catch (error) {
     console.error('Error adding resource:', error);
-    res.status(500).json({ error: 'Failed to add resource' });
+    throw new Error('Failed to add resource');
   }
-});
+};
 
-router.delete('/resources/:id', (req, res) => {
+// Remove resource
+export const removeResource = async (id: string) => {
   try {
-    const { id } = req.params;
+    const state = useStore.getState();
     
-    // Remove resource from the centralized store
-    const { removeResource } = useStore.getState();
-    removeResource(id);
+    // Remove resource using the store function
+    state.removeResource(id);
     
-    res.json({ success: true });
+    return { success: true };
   } catch (error) {
     console.error('Error removing resource:', error);
-    res.status(500).json({ error: 'Failed to remove resource' });
+    throw new Error('Failed to remove resource');
   }
-});
-
-export default router;
+};

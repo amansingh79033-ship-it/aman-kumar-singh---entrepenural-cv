@@ -73,8 +73,8 @@ const AhiGlobe: React.FC = () => {
             if (rect) {
                 mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
                 mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-                targetRotationY = mouse.x * 0.5;
-                targetRotationX = mouse.y * 0.5;
+                targetRotationY = mouse.x * 0.8; // Increased sensitivity for better hover effect
+                targetRotationX = mouse.y * 0.8; // Increased sensitivity for better hover effect
             }
         };
 
@@ -139,7 +139,7 @@ const AhiGlobe: React.FC = () => {
         };
     }, []);
 
-    return <div ref={mountRef} className="w-full h-[500px] md:h-[600px] cursor-move" title="Interactive AHI Neural Map" />;
+    return <div ref={mountRef} className="w-full h-[500px] md:h-[600px] cursor-move hover:cursor-grab active:cursor-grabbing" title="Interactive AHI Neural Map" />;
 };
 
 export default AhiGlobe;

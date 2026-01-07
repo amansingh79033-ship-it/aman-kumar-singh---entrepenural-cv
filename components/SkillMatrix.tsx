@@ -364,7 +364,7 @@ const SkillMatrix: React.FC = () => {
         <section id="skillset" className="relative h-screen bg-black overflow-hidden flex flex-col items-center py-20">
             {/* Header */}
             <div className="z-10 text-center pointer-events-none mb-4">
-                <div className="inline-block px-4 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-bold uppercase tracking-[0.3em] mb-4 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+                <div className="inline-block px-4 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs md:text-sm font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] mb-4 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
                     skillSET
                 </div>
             </div>
@@ -382,9 +382,9 @@ const SkillMatrix: React.FC = () => {
                         className="absolute z-20 pointer-events-none"
                         style={{ left: hoveredSkill.x, top: hoveredSkill.y, transform: 'translate(-50%, -120%)' }}
                     >
-                        <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-5 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] min-w-[280px]" style={{ borderTop: `4px solid ${hoveredSkill.color}` }}>
-                            <h3 className="text-xl font-bold text-white mb-1">{hoveredSkill.name}</h3>
-                            <p className="text-gray-400 text-xs uppercase tracking-wider mb-3">Deployed Protocol</p>
+                        <div className="bg-black/90 backdrop-blur-xl border border-white/20 p-4 md:p-5 rounded-lg md:rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.4)] min-w-[240px] max-w-[300px] md:min-w-[280px]" style={{ borderTop: `3px solid ${hoveredSkill.color}` }}>
+                            <h3 className="text-lg md:text-xl font-bold text-white mb-1">{hoveredSkill.name}</h3>
+                            <p className="text-sky-400 text-[10px] md:text-xs uppercase tracking-wider mb-2">Usage</p>
                             <p className="text-gray-300 text-sm leading-relaxed">{hoveredSkill.usage}</p>
                         </div>
                     </motion.div>
@@ -392,30 +392,26 @@ const SkillMatrix: React.FC = () => {
             </AnimatePresence>
 
             {/* Filter Controls */}
-            <div className="absolute bottom-6 md:bottom-10 z-20 left-0 right-0 px-4">
-                <div className="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+            <div className="absolute bottom-4 md:bottom-10 z-20 left-0 right-0 px-4">
+                <div className="flex flex-nowrap md:flex-wrap justify-start md:justify-center gap-2 md:gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide max-w-full">
                     <button
                         onClick={() => setActiveCategory('all')}
-                        className={`px-4 md:px-6 py-2.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all whitespace-nowrap flex-shrink-0 ${activeCategory === 'all'
-                            ? 'bg-white text-black shadow-[0_0_20px_white]'
-                            : 'bg-white/5 text-gray-400 hover:bg-white/10 border border-white/10'
+                        className={`px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all whitespace-nowrap flex-shrink-0 ${activeCategory === 'all'
+                            ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]'
+                            : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/20'
                             }`}
                     >
-                        ALL NODES
+                        ALL
                     </button>
                     {CATEGORIES.map(cat => (
                         <button
                             key={cat.id}
                             onClick={() => setActiveCategory(cat.id)}
-                            className={`px-4 md:px-6 py-2.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.2em] transition-all border whitespace-nowrap flex-shrink-0 ${activeCategory === cat.id
-                                ? `bg-${cat.color}/20 text-white shadow-[0_0_20px_${cat.color}]`
-                                : 'bg-transparent text-gray-500 border-white/10 hover:border-white/30'
+                            className={`px-4 md:px-6 py-2.5 md:py-3 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all border whitespace-nowrap flex-shrink-0 ${activeCategory === cat.id
+                                ? 'text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]'
+                                : 'bg-white/5 text-slate-400 border border-white/20 hover:border-white/40'
                                 }`}
-                            style={{
-                                borderColor: activeCategory === cat.id ? cat.color : undefined,
-                                backgroundColor: activeCategory === cat.id ? cat.color : undefined,
-                                color: activeCategory === cat.id ? 'black' : undefined
-                            }}
+                            style={activeCategory === cat.id ? { backgroundColor: cat.color, borderColor: cat.color } : { backgroundColor: activeCategory === cat.id ? cat.color : 'rgba(255,255,255,0.05)', borderColor: activeCategory === cat.id ? cat.color : 'rgba(255,255,255,0.2)' }}
                         >
                             {cat.name}
                         </button>

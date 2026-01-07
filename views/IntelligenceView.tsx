@@ -78,7 +78,7 @@ const IntelligenceView: React.FC = () => {
         {/* Right: 3D Visualization */}
         <div className="relative h-[600px] w-full">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(56,189,248,0.1),transparent_70%)]" />
-          <div className="relative z-10 h-full border border-sky-500/10 rounded-[3rem] overflow-hidden bg-black/20 backdrop-blur-sm cursor-grab active:cursor-grabbing">
+          <div className="relative z-10 h-full border border-sky-500/10 rounded-[3rem] overflow-hidden bg-black/20 backdrop-blur-sm cursor-grab active:cursor-grabbing hover:border-sky-400/30 transition-all duration-300">
             <div className="absolute top-8 left-8 z-20 pointer-events-none">
               <div className="text-[10px] text-sky-400 font-mono mb-2">FIG 1.0: NEURAL SYNC TOPOLOGY</div>
               <div className="flex gap-2">
