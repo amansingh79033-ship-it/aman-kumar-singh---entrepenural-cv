@@ -322,16 +322,16 @@ const PoemCard: React.FC<{
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
       viewport={{ margin: "-50px" }}
-      className={`group relative p-6 sm:p-8 md:p-10 rounded-[1.5rem] sm:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
+      className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
     >
       {/* Playback Controls */}
-      <div className="absolute top-3 md:top-6 right-3 md:right-14 z-20 flex items-center gap-2 mobile-controls">
+      <div className="absolute top-2 sm:top-3 md:top-6 right-2 sm:right-3 md:right-14 z-20 flex items-center gap-1 sm:gap-2 mobile-controls">
         {!isSpeaking ? (
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowVoicePicker(!showVoicePicker)}
-            className="p-2.5 md:p-3 bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
+            className="p-2 sm:p-2.5 md:p-3 bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
             title="Hear with emotion"
           >
             <Mic2 size={16} className="md:w-[18px] md:h-[18px]" />
@@ -341,7 +341,7 @@ const PoemCard: React.FC<{
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ repeat: Infinity, duration: 1 }}
             onClick={isPaused ? resumeSpeaking : pauseSpeaking}
-            className="p-2.5 md:p-3 bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
+            className="p-2 sm:p-2.5 md:p-3 bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
           >
             {isPaused ? (
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -362,12 +362,12 @@ const PoemCard: React.FC<{
               initial={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
               animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
-              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 flex flex-col gap-2 shadow-2xl min-w-[140px] md:min-w-[120px] mobile-controls"
+              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-xl sm:rounded-2xl p-2 flex flex-col gap-1 sm:gap-2 shadow-2xl min-w-[120px] sm:min-w-[140px] md:min-w-[120px] mobile-controls"
             >
               <div className="flex gap-1">
                 <button
                   onClick={() => speak('male')}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                   title="Men Voice"
                 >
                   <User size={12} /> Men
@@ -375,19 +375,19 @@ const PoemCard: React.FC<{
                 <div className="w-[1px] bg-white/10" />
                 <button
                   onClick={() => speak('female')}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
                   title="Women Voice"
                 >
                   <UserCheck size={12} /> Women
                 </button>
               </div>
 
-              <div className="border-t border-white/5 flex items-center justify-between p-2 pt-3">
+              <div className="border-t border-white/5 flex items-center justify-between p-1.5 sm:p-2 pt-2 sm:pt-3">
                 {[0.8, 1.0, 1.25, 1.5].map((s) => (
                   <button
                     key={s}
                     onClick={() => setPlaybackSpeed(s)}
-                    className={`px-3 py-2 rounded-md text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                    className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-md text-[7px] sm:text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
                   >
                     {s}x
                   </button>
@@ -416,7 +416,7 @@ const PoemCard: React.FC<{
 
       <div
         ref={contentRef}
-        className={`space-y-4 sm:space-y-6 text-slate-300 font-light leading-relaxed text-base sm:text-lg md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-12' : ''}`}
+        className={`space-y-3 sm:space-y-4 text-slate-300 font-light leading-relaxed text-sm sm:text-base md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-8 sm:gap-12' : ''}`}
       >
         {isSpeaking ? (
           /* Using recursive walker to inject highlights while preserving structure */
@@ -424,8 +424,8 @@ const PoemCard: React.FC<{
         ) : children}
       </div>
 
-      <div className="absolute top-6 right-6 w-2 h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
-      <div className="absolute bottom-6 left-6 w-2 h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
+      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
+      <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
     </motion.div>
   );
   // Function to start background music
@@ -505,7 +505,7 @@ const PoemCard: React.FC<{
 
 const MindspaceView: React.FC = () => {
   return (
-    <div className="min-h-screen py-32 px-4 relative max-w-7xl mx-auto">
+    <div className="min-h-screen py-16 sm:py-32 px-4 relative max-w-7xl mx-auto">
       {/* Hero Section */}
       <div className="text-center mb-32 relative">
         <motion.div
@@ -521,7 +521,7 @@ const MindspaceView: React.FC = () => {
           <motion.h2
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="text-6xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 italic"
+            className="text-4xl sm:text-6xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 italic"
           >
             Sikandar
           </motion.h2>
@@ -529,7 +529,7 @@ const MindspaceView: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-sky-400 font-display uppercase tracking-[0.4em] text-xs md:text-sm font-bold"
+            className="text-sky-400 font-display uppercase tracking-[0.3em] sm:tracking-[0.4em] text-[10px] sm:text-xs md:text-sm font-bold"
           >
             The Poetic Resonance of Aman
           </motion.p>
@@ -538,7 +538,7 @@ const MindspaceView: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
         {/* Intro Verses */}
-        <div className="space-y-8 md:space-y-12 flex flex-col justify-center">
+        <div className="space-y-6 sm:space-y-8 md:space-y-12 flex flex-col justify-center">
           <PoemCard delay={0.1}>
             <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
             <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।</p>
@@ -579,7 +579,7 @@ const MindspaceView: React.FC = () => {
         </PoemCard>
       </div>
 
-      <div className="mt-20 space-y-20">
+      <div className="mt-12 sm:mt-20 space-y-12 sm:space-y-20">
         <PoemCard title="हमसफ़र" featured>
           <p>आसमाँ से छिपा के सख़्सियत अपनी ,<br /><span className="text-sky-200/80">सितारों को साहिल हमसफ़र समझते हैं।</span></p>
           <p>मोहब्बत भी फ़क़त फकीरी है,<br /><span className="text-sky-200/80">ये उनके दिल को अपना घर समझते हैं।</span></p>
@@ -592,7 +592,7 @@ const MindspaceView: React.FC = () => {
           <p className="mt-4 text-sky-400 font-bold">- अमन</p>
         </PoemCard>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
           <PoemCard title="साथ कौन है?">
             <p>वो मेरे सीने में धड़कन अपनी , सहेज कुछ यूँ रहा है<br /><span className="text-sky-200/80">वो इस क़दर जकड़ के भी मुझको, ढूँड़ तो सुकूँ रहा है !</span></p>
             <div className="h-px bg-white/5 w-full my-4" />
@@ -609,7 +609,7 @@ const MindspaceView: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-20 space-y-20">
+      <div className="mt-12 sm:mt-20 space-y-12 sm:space-y-20">
         <PoemCard title="दस्तार" featured>
           <p>उनको छू कर हवा कहती है मुझसे</p>
           <p className="text-sky-200/80">तमाशा देखेंगे, ख़ुद को साहिब-ए-ईसार बताने वाले</p>

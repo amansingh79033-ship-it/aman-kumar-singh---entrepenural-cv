@@ -105,8 +105,9 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
 
         {/* Mobile Hamburger */}
         <button
-          className="lg:hidden text-white p-2"
+          className="lg:hidden text-white p-2 z-50"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle mobile menu"
         >
           <div className="space-y-1.5">
             <motion.span animate={{ rotate: isMobileMenuOpen ? 45 : 0, y: isMobileMenuOpen ? 6 : 0 }} className="block w-6 h-0.5 bg-white" />
@@ -122,9 +123,15 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[90] bg-black/95 backdrop-blur-3xl pt-24 px-6 lg:hidden"
+          className="fixed inset-0 z-[90] bg-black/95 backdrop-blur-3xl pt-24 px-6 lg:hidden overflow-y-auto"
+          onClick={(e) => {
+            // Close menu when clicking on the overlay background
+            if (e.target === e.currentTarget) {
+              setIsMobileMenuOpen(false);
+            }
+          }}
         >
-          <div className="flex flex-col space-y-8">
+          <div className="flex flex-col space-y-8 pb-8">
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -132,10 +139,10 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView }) => {
                   setView(item.id);
                   setIsMobileMenuOpen(false);
                 }}
-                className="text-left group"
+                className="text-left group py-2"
               >
                 <span className="block text-[10px] uppercase tracking-[0.4em] text-slate-500 mb-1">{item.desc}</span>
-                <span className={`text-3xl font-display font-bold ${currentView === item.id ? 'text-sky-400' : 'text-white'}`}>
+                <span className={`text-2xl sm:text-3xl font-display font-bold ${currentView === item.id ? 'text-sky-400' : 'text-white'}`}>
                   {item.name}
                 </span>
               </button>
