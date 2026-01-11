@@ -86,7 +86,7 @@ const PoemCard: React.FC<{
     }
   };
 
-  const speak = (gender: 'male' | 'female') => {
+  const speak = (gender: 'male' | 'female' | 'own') => {
     if (isPaused) {
       // If we're paused, just resume from where we left off
       resumeSpeaking();
@@ -133,8 +133,31 @@ const PoemCard: React.FC<{
     const indianEnglishVoices = allVoices.filter(v => v.lang.startsWith('en-IN'));
     
     let selectedVoice = null;
-    if (gender === 'male') {
-      // Prioritize male voices for Hindi/Indian languages that sound more expressive
+    if (gender === 'own') {
+      // For 'own' voice, try to find the most standard, neutral voice that sounds like the user
+      // First try to find any voice that might sound like a typical adult
+      selectedVoice = allVoices.find(v => 
+        v.name.toLowerCase().includes('default') ||
+        v.name.toLowerCase().includes('standard') ||
+        v.name.toLowerCase().includes('general') ||
+        v.name.toLowerCase().includes('neutral')
+      );
+      
+      // If no standard voice found, try any adult-like voice
+      if (!selectedVoice) {
+        selectedVoice = allVoices.find(v => 
+          v.name.toLowerCase().includes('adult') ||
+          v.name.toLowerCase().includes('middle') ||
+          v.name.toLowerCase().includes('normal')
+        );
+      }
+      
+      // Fallback to any available voice
+      if (!selectedVoice) {
+        selectedVoice = allVoices[0];
+      }
+    } else if (gender === 'male') {
+      // Prioritize male voices for Hindi/Indian languages that sound more like a mature 35-year-old
       selectedVoice = hiVoices.find(v => 
         v.name.toLowerCase().includes('male') || 
         v.name.toLowerCase().includes('ravi') || 
@@ -144,16 +167,21 @@ const PoemCard: React.FC<{
         v.name.toLowerCase().includes('suresh') ||
         v.name.toLowerCase().includes('ramesh') ||
         v.name.toLowerCase().includes('hindi') ||
-        v.name.toLowerCase().includes('indian')
+        v.name.toLowerCase().includes('indian') ||
+        v.name.toLowerCase().includes('adult') ||
+        v.name.toLowerCase().includes('middle') ||
+        v.name.toLowerCase().includes('aged')
       );
       
-      // If no specific male voice found, try to find a voice with more emotional but firm voice quality
+      // If no specific mature male voice found, try to find a voice with more emotional but firm voice quality
       if (!selectedVoice) {
         selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
           v.name.toLowerCase().includes('standard') ||
           v.name.toLowerCase().includes('premium') ||
           v.name.toLowerCase().includes('expressive') ||
-          v.name.toLowerCase().includes('enhanced')
+          v.name.toLowerCase().includes('enhanced') ||
+          v.name.toLowerCase().includes('adult') ||
+          v.name.toLowerCase().includes('middle')
         );
       }
       
@@ -162,7 +190,7 @@ const PoemCard: React.FC<{
         selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => v.name.toLowerCase().includes('male'));
       }
     } else {
-      // Prioritize female voices for Hindi/Indian languages that sound more expressive
+      // Prioritize female voices for Hindi/Indian languages that sound more like a mature 35-year-old
       selectedVoice = hiVoices.find(v => 
         v.name.toLowerCase().includes('female') || 
         v.name.toLowerCase().includes('lena') || 
@@ -172,16 +200,21 @@ const PoemCard: React.FC<{
         v.name.toLowerCase().includes('swathi') ||
         v.name.toLowerCase().includes('kavya') ||
         v.name.toLowerCase().includes('hindi') ||
-        v.name.toLowerCase().includes('indian')
+        v.name.toLowerCase().includes('indian') ||
+        v.name.toLowerCase().includes('adult') ||
+        v.name.toLowerCase().includes('middle') ||
+        v.name.toLowerCase().includes('aged')
       );
       
-      // If no specific female voice found, try to find a voice with more emotional quality
+      // If no specific mature female voice found, try to find a voice with more emotional quality
       if (!selectedVoice) {
         selectedVoice = [...hiVoices, ...indianEnglishVoices].find(v => 
           v.name.toLowerCase().includes('standard') ||
           v.name.toLowerCase().includes('premium') ||
           v.name.toLowerCase().includes('expressive') ||
-          v.name.toLowerCase().includes('enhanced')
+          v.name.toLowerCase().includes('enhanced') ||
+          v.name.toLowerCase().includes('adult') ||
+          v.name.toLowerCase().includes('middle')
         );
       }
       
@@ -208,18 +241,27 @@ const PoemCard: React.FC<{
       utterance.lang = 'hi-IN';
     }
     
-    // For more natural Hindi poetic delivery, adjust parameters
-    utterance.pitch = gender === 'female' ? 0.9 : 0.7; // Higher pitch for more expressive delivery
-    utterance.rate = playbackSpeed * 0.9; // Slightly slower for better articulation
+    // For more natural Hindi poetic delivery with mature 35-year-old characteristics, adjust parameters
+    // 35-year-olds typically have more stable, settled voices - not too high, not too low
+    if (gender === 'own') {
+      // For 'own' voice, use more neutral settings that could represent a typical user
+      utterance.pitch = 0.65; // Neutral pitch
+      utterance.rate = playbackSpeed * 0.9; // Standard rate
+    } else {
+      utterance.pitch = gender === 'female' ? 0.75 : 0.55; // More mature pitch for 35-year-old voice
+      utterance.rate = playbackSpeed * 0.85; // Slightly slower for more deliberate, mature delivery
+    }
     utterance.volume = 0.85; // Slightly higher volume for better clarity
     
     // Add a slight pause before starting for more dramatic effect
-    utterance.pitch = gender === 'female' ? 0.85 : 0.65;
+    utterance.pitch = gender === 'own' ? 0.65 : (gender === 'female' ? 0.75 : 0.55);
 
     utterance.onstart = () => {
       setIsSpeaking(true);
       // Set initial pitch based on gender for emotional delivery
-      if (gender === 'female') {
+      if (gender === 'own') {
+        utterance.pitch = 0.65; // Neutral pitch for 'own' voice
+      } else if (gender === 'female') {
         utterance.pitch = 0.85;
       } else {
         utterance.pitch = 0.6;
@@ -259,7 +301,10 @@ const PoemCard: React.FC<{
         
         if (emotionalWords.some(word => currentWord.includes(word.toLowerCase()))) {
           // Increase pitch and add more variation for emotional words
-          if (gender === 'female') {
+          if (gender === 'own') {
+            utterance.pitch = 0.75 + Math.random() * 0.05; // More neutral pitch for 'own' voice
+            utterance.rate = playbackSpeed * 0.9; // Standard rate for 'own' voice
+          } else if (gender === 'female') {
             utterance.pitch = 0.95 + Math.random() * 0.1;
             utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
           } else {
@@ -268,7 +313,10 @@ const PoemCard: React.FC<{
           }
         } else {
           // Normal pitch variation for regular words
-          if (gender === 'female') {
+          if (gender === 'own') {
+            utterance.pitch = 0.65 + Math.random() * 0.05; // Neutral pitch variation for 'own' voice
+            utterance.rate = playbackSpeed * 0.9; // Regular speed
+          } else if (gender === 'female') {
             utterance.pitch = 0.85 + Math.random() * 0.05; // Natural pitch variation
             utterance.rate = playbackSpeed * 0.9; // Regular speed
           } else {
@@ -281,7 +329,9 @@ const PoemCard: React.FC<{
       if (event.name === 'sentence' || event.name === 'paragraph') {
         setTimeout(() => {
           // Temporarily adjust parameters for pause
-          if (gender === 'female') {
+          if (gender === 'own') {
+            utterance.pitch = 0.65; // Neutral for 'own' voice
+          } else if (gender === 'female') {
             utterance.pitch = 0.8;
           } else {
             utterance.pitch = 0.6;
@@ -292,7 +342,9 @@ const PoemCard: React.FC<{
         if (event.name === 'paragraph') {
           setTimeout(() => {
             // Resume with more dramatic effect after paragraph
-            if (gender === 'female') {
+            if (gender === 'own') {
+              utterance.pitch = 0.7; // Neutral for 'own' voice
+            } else if (gender === 'female') {
               utterance.pitch = 0.9;
             } else {
               utterance.pitch = 0.7;
@@ -440,6 +492,14 @@ const PoemCard: React.FC<{
                   title="Women Voice"
                 >
                   <UserCheck size={12} /> Women
+                </button>
+                <div className="w-[1px] bg-white/10" />
+                <button
+                  onClick={() => speak('own')}
+                  className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  title="My Voice"
+                >
+                  <User size={12} /> My Voice
                 </button>
               </div>
 
