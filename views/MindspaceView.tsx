@@ -33,8 +33,6 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       window.speechSynthesis.pause();
       setIsPaused(true);
       setIsSpeaking(false);
-      
-
     }
   };
 
@@ -43,8 +41,6 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       window.speechSynthesis.resume();
       setIsPaused(false);
       setIsSpeaking(true);
-      
-
     }
   };
 
@@ -89,12 +85,12 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
     const textElements = contentRef.current?.querySelectorAll('p');
     let poemContent = "";
     if (textElements && textElements.length > 0) {
-      // Extract text content and handle repetitions indicated by |2|
+      // Extract text content and handle repetitions indicated by ||
       poemContent = Array.from(textElements).map(el => {
         let text = (el as HTMLElement).innerText;
-        // Check if the line ends with |2| and repeat the line
-        if (text.trim().endsWith('|2|')) {
-          text = text.replace(/\|2\|$/, ''); // Remove the |2| marker
+        // Check if the line ends with || and repeat the line
+        if (text.trim().endsWith('||')) {
+          text = text.replace(/\|\|$/, ''); // Remove the || marker
           return text + '\n' + text; // Repeat the line
         }
         return text;
@@ -283,7 +279,10 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
         // Expanded list of Hindi/Urdu words that should have more emotional emphasis
         const emotionalWords = ['मोहब्बत', 'दिल', 'जज़्बात', 'ग़म', 'याद', 'तकलीफ', 'ख़ुशी', 'मोहब्बतन', 'दर्द', 'इश्क़', 'हर्ज़ा', 'ख़्वाब', 'आह', 'सांस', 'ज़िंदगी', 'मौत', 'तमाशा', 'नज़र', 'आइना', 'मिलाप', 'विछोह', 'साहिर', 'शहंशाह', 'ताज', 'क़त्ल', 'ज़ख्म', 'नम', 'हवा', 'तलवार', 'साहिब', 'ईसार', 'हिफ़ाज़त', 'ज़ार', 'फ़रेबी', 'अना', 'अफ़गार', 'औज़ार', 'इस्तिबशार', 'रख़्श', 'आफ़ताब', 'रब-अता', 'आफ़ियत-बेज़ार', 'गलतफहमी', 'साथ', 'हमसफ़र', 'मुस्कुरा', 'क़तरा', 'क़तल', 'शाह', 'दस्तार', 'ख़ौफ़', 'नाराज़गी', 'हार', 'मेरा', 'तुम्हारा', 'हम', 'साथ', 'तुम', 'हमारा', 'वक़्त', 'यास', 'उम्मीद', 'नसीहत', 'इबादत', 'मस्जिद', 'मंदिर', 'कब्र', 'तारीफ़', 'तारीख़', 'ज़मीन', 'आसमान', 'तारे', 'तलाश', 'हक़ीक़त', 'ख्वाब', 'बेकसूर', 'गुनाह', 'माफ़', 'कर्ज़', 'जिम्मेदारी', 'खुदा', 'इबादत', 'नमाज़', 'रोज़ा', 'ईमान', 'इंसान', 'जानवर', 'पेड़', 'फूल', 'जंग', 'शांति', 'तलवार', 'बुलंद', 'पाए', 'हसीन', 'जलवे', 'नज़र', 'हुस्न', 'गुलाब', 'बेला', 'सहरा', 'तलाश', 'मिलाप', 'विछोड़', 'बात', 'बातें', 'बातों', 'बातें', 'बात', 'बातों', 'बातें'];
         
-        if (emotionalWords.some(word => currentWord.includes(word.toLowerCase()))) {
+        // Check if the current word contains the repetition marker
+        const hasRepetitionMarker = currentWord.includes('।।') || currentWord.includes('||') || currentWord.includes('।।');
+        
+        if (emotionalWords.some(word => currentWord.includes(word.toLowerCase())) || hasRepetitionMarker) {
           // Increase pitch and add more variation for emotional words
           if (gender === 'own') {
             utterance.pitch = 0.75 + Math.random() * 0.05; // More neutral pitch for 'own' voice
@@ -294,6 +293,13 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
           } else {
             utterance.pitch = 0.75 + Math.random() * 0.1;
             utterance.rate = playbackSpeed * 0.85; // Slightly slower for emotional words
+          }
+          
+          // If this is a repeated line marker, add more energy
+          if (hasRepetitionMarker) {
+            // Add more energy for repeated lines
+            utterance.pitch = (gender === 'female' ? 1.1 : 0.9) + Math.random() * 0.1;
+            utterance.rate = playbackSpeed * 0.7; // Slightly slower for emphasis
           }
         } else {
           // Normal pitch variation for regular words
@@ -311,29 +317,34 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       }
       // Add appropriate pauses at sentence/paragraph boundaries for poetic effect
       if (event.name === 'sentence' || event.name === 'paragraph') {
-        setTimeout(() => {
-          // Temporarily adjust parameters for pause
-          if (gender === 'own') {
-            utterance.pitch = 0.65; // Neutral for 'own' voice
-          } else if (gender === 'female') {
-            utterance.pitch = 0.8;
-          } else {
-            utterance.pitch = 0.6;
-          }
-        }, 100); // Brief pause adjustment
+        // Temporarily adjust parameters for pause
+        if (gender === 'own') {
+          utterance.pitch = 0.65; // Neutral for 'own' voice
+        } else if (gender === 'female') {
+          utterance.pitch = 0.8;
+        } else {
+          utterance.pitch = 0.6;
+        }
+        
+        // Check if the current text contains repetition markers
+        const hasRepetitionMarker = event.name === 'paragraph' && fullText.includes('।।');
         
         // Add a longer pause for paragraph breaks
         if (event.name === 'paragraph') {
-          setTimeout(() => {
-            // Resume with more dramatic effect after paragraph
-            if (gender === 'own') {
-              utterance.pitch = 0.7; // Neutral for 'own' voice
-            } else if (gender === 'female') {
-              utterance.pitch = 0.9;
-            } else {
-              utterance.pitch = 0.7;
-            }
-          }, 300);
+          // Resume with more dramatic effect after paragraph
+          if (gender === 'own') {
+            utterance.pitch = 0.7; // Neutral for 'own' voice
+          } else if (gender === 'female') {
+            utterance.pitch = 0.9;
+          } else {
+            utterance.pitch = 0.7;
+          }
+          
+          // If this paragraph contains repetition markers, add more energy
+          if (hasRepetitionMarker) {
+            utterance.pitch = (gender === 'female' ? 1.0 : 0.8) + Math.random() * 0.1;
+            utterance.rate = playbackSpeed * 0.7; // Slightly slower for emphasis
+          }
         }
       }
     };
@@ -422,30 +433,32 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
       className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
     >
       {/* Playback Controls */}
-      <div className="absolute top-2 sm:top-3 md:top-6 right-2 sm:right-3 md:right-14 z-20 flex items-center gap-1 sm:gap-2 mobile-controls">
+      <div className="absolute top-2 xs:top-2 sm:top-3 md:top-6 right-2 xs:right-2 sm:right-3 md:right-14 z-20 flex items-center gap-1 xs:gap-1 sm:gap-2 mobile-controls">
         {!isSpeaking ? (
           <motion.button
             whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowVoicePicker(!showVoicePicker)}
-            className="p-2 sm:p-2.5 md:p-3 bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
+            className="p-2 xs:p-2.5 sm:p-2.5 md:p-3 bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
             title="Hear with emotion"
           >
-            <Mic2 size={16} className="md:w-[18px] md:h-[18px]" />
+            <Mic2 size={14} className="xs:w-[16px] sm:w-[16px] md:w-[18px] md:h-[18px]" />
           </motion.button>
         ) : (
           <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ repeat: Infinity, duration: 1 }}
             onClick={isPaused ? resumeSpeaking : pauseSpeaking}
-            className="p-2 sm:p-2.5 md:p-3 bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
+            className="p-2 xs:p-2.5 sm:p-2.5 md:p-3 bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
           >
             {isPaused ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" className="xs:w-[16px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" className="xs:w-[16px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="6" y="4" width="4" height="16"></rect>
                 <rect x="14" y="4" width="4" height="16"></rect>
               </svg>
@@ -459,40 +472,40 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
               initial={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
               animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
-              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-xl sm:rounded-2xl p-2 flex flex-col gap-1 sm:gap-2 shadow-2xl min-w-[120px] sm:min-w-[140px] md:min-w-[120px] mobile-controls"
+              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-lg xs:rounded-xl sm:rounded-2xl p-1.5 xs:p-2 flex flex-col gap-1 sm:gap-2 shadow-2xl min-w-[110px] xs:min-w-[120px] sm:min-w-[140px] md:min-w-[120px] mobile-controls"
             >
               <div className="flex gap-1">
                 <button
                   onClick={() => speak('male')}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 xs:py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-md xs:rounded-lg text-[7px] xs:text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
                   title="Men Voice"
                 >
-                  <User size={12} /> Men
+                  <User size={10} className="xs:size-[12px]" /> Men
                 </button>
                 <div className="w-[1px] bg-white/10" />
                 <button
                   onClick={() => speak('female')}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 xs:py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-md xs:rounded-lg text-[7px] xs:text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
                   title="Women Voice"
                 >
-                  <UserCheck size={12} /> Women
+                  <UserCheck size={10} className="xs:size-[12px]" /> Women
                 </button>
                 <div className="w-[1px] bg-white/10" />
                 <button
                   onClick={() => speak('own')}
-                  className="flex-1 flex items-center justify-center gap-1 py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-lg text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1 py-1.5 xs:py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-md xs:rounded-lg text-[7px] xs:text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
                   title="My Voice"
                 >
-                  <User size={12} /> My Voice
+                  <User size={10} className="xs:size-[12px]" /> My Voice
                 </button>
               </div>
 
-              <div className="border-t border-white/5 flex items-center justify-between p-1.5 sm:p-2 pt-2 sm:pt-3">
+              <div className="border-t border-white/5 flex items-center justify-between p-1 xs:p-1.5 sm:p-2 pt-1.5 xs:pt-2 sm:pt-3">
                 {[0.8, 1.0, 1.25, 1.5].map((s) => (
                   <button
                     key={s}
                     onClick={() => setPlaybackSpeed(s)}
-                    className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-md text-[7px] sm:text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                    className={`px-1.5 xs:px-2 sm:px-3 py-1 xs:py-1.5 sm:py-2 rounded-sm xs:rounded-md text-[6px] xs:text-[7px] sm:text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
                   >
                     {s}x
                   </button>
@@ -513,7 +526,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
 
       {title && (
         <div className="mb-8 relative z-10">
-          <h4 className="text-xl md:text-2xl font-display text-yellow-100/90 tracking-widest uppercase italic border-l-2 border-yellow-500/50 pl-4">
+          <h4 className="text-lg xs:text-xl md:text-2xl font-display text-yellow-100/90 tracking-widest uppercase italic border-l-2 border-yellow-500/50 pl-4">
             {renderTextWithHighlight(title, titleOffset, "text-yellow-100/90")}
           </h4>
         </div>
@@ -521,7 +534,7 @@ const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
 
       <div
         ref={contentRef}
-        className={`space-y-3 sm:space-y-4 text-slate-300 font-light leading-relaxed text-sm sm:text-base md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-8 sm:gap-12' : ''}`}
+        className={`space-y-2 xs:space-y-3 sm:space-y-4 text-slate-300 font-light leading-relaxed text-xs xs:text-sm sm:text-base md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-6 xs:gap-8 sm:gap-12' : ''}`}
       >
         {isSpeaking ? (
           /* Using recursive walker to inject highlights while preserving structure */
@@ -629,10 +642,10 @@ const MindspaceView: React.FC = () => {
     if (!showRecordingModal) return null;
     
     return (
-      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 xs:p-4">
+        <div className="bg-gray-900 border border-white/10 rounded-xl xs:rounded-2xl p-4 xs:p-6 max-w-[95vw] xs:max-w-md w-full">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-white">Record Your Voice</h3>
+            <h3 className="text-lg xs:text-xl font-bold text-white">Record Your Voice</h3>
             <button 
               onClick={() => {
                 setShowRecordingModal(false);
@@ -645,24 +658,24 @@ const MindspaceView: React.FC = () => {
           </div>
           
           <div className="mb-6">
-            <p className="text-gray-300 mb-4">
+            <p className="text-gray-300 text-sm xs:text-base mb-3 xs:mb-4">
               Please read the following sample text to help us match your voice characteristics:
             </p>
-            <div className="bg-gray-800/50 p-4 rounded-lg border border-white/5">
-              <p className="text-center text-white italic">"आवाज़ सुनाओ मुझे अपनी, मैं गाऊंगा तुम्हारे अहसास की गाथा।"</p>
+            <div className="bg-gray-800/50 p-3 xs:p-4 rounded-md xs:rounded-lg border border-white/5">
+              <p className="text-center text-white italic text-sm xs:text-base">"आवाज़ सुनाओ मुझे अपनी, मैं गाऊंगा तुम्हारे अहसास की गाथा।"</p>
             </div>
           </div>
           
           {recordingError && (
-            <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300">
+            <div className="mb-4 p-2 xs:p-3 bg-red-900/30 border border-red-500/50 rounded-md xs:rounded-lg text-red-300 text-sm">
               {recordingError}
-              <div className="mt-3 flex gap-2">
+              <div className="mt-2 xs:mt-3 flex flex-col xs:flex-row gap-2">
                 <button
                   onClick={() => {
                     setRecordingError(null);
                     startRecording();
                   }}
-                  className="py-2 px-3 bg-red-700 hover:bg-red-600 text-white rounded text-sm mr-2"
+                  className="py-2 px-3 bg-red-700 hover:bg-red-600 text-white rounded text-sm"
                 >
                   Record Again
                 </button>
@@ -686,9 +699,9 @@ const MindspaceView: React.FC = () => {
               <>
                 <button
                   onClick={startRecording}
-                  className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white py-3 px-4 rounded-lg transition-colors"
+                  className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white py-2.5 xs:py-3 px-3 xs:px-4 rounded-md xs:rounded-lg transition-colors"
                 >
-                  <Mic2 size={18} />
+                  <Mic2 size={16} className="xs:size-[18px]" />
                   Start Recording (5 Sec)
                 </button>
                 
@@ -697,18 +710,18 @@ const MindspaceView: React.FC = () => {
                     setShowRecordingModal(false);
                     // Use default 35-year-old Hindi-Urdu professor voice
                   }}
-                  className="py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  className="py-2.5 xs:py-3 px-3 xs:px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-md xs:rounded-lg transition-colors"
                 >
                   Use Default Voice Instead
                 </button>
               </>
             ) : (
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col items-center gap-2 xs:gap-3">
                 <div className="flex items-center gap-2 text-red-400">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span>Recording... Please read the sample text aloud</span>
+                  <div className="w-2.5 xs:w-3 h-2.5 xs:h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm xs:text-base">Recording... Please read the sample text aloud</span>
                 </div>
-                <p className="text-gray-400 text-sm">Reading the sample text aloud</p>
+                <p className="text-gray-400 text-xs xs:text-sm">Reading the sample text aloud</p>
               </div>
             )}
           </div>
@@ -720,23 +733,23 @@ const MindspaceView: React.FC = () => {
   return (
     <>
       {renderRecordingModal()}
-      <div className="min-h-screen py-16 sm:py-32 px-4 relative max-w-7xl mx-auto">
+      <div className="min-h-screen py-12 xs:py-16 sm:py-32 px-3 xs:px-4 relative max-w-7xl mx-auto">
       {/* Hero Section */}
-      <div className="text-center mb-32 relative">
+      <div className="text-center mb-20 xs:mb-24 sm:mb-32 relative">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1 }}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[15vw] md:text-[18vw] font-display font-bold text-white/[0.02] select-none pointer-events-none"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[12vw] xs:text-[15vw] md:text-[18vw] font-display font-bold text-white/[0.02] select-none pointer-events-none"
         >
-          SAHIR
+          साहिर
         </motion.div>
 
-        <div className="relative z-10 space-y-4">
+        <div className="relative z-10 space-y-3 xs:space-y-4">
           <motion.h2
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="text-4xl sm:text-6xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 italic"
+            className="text-3xl xs:text-4xl sm:text-6xl md:text-8xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 italic"
           >
             Sikandar
           </motion.h2>
@@ -744,19 +757,19 @@ const MindspaceView: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-sky-400 font-display uppercase tracking-[0.3em] sm:tracking-[0.4em] text-[10px] sm:text-xs md:text-sm font-bold"
+            className="text-sky-400 font-display uppercase tracking-[0.25em] xs:tracking-[0.3em] sm:tracking-[0.4em] text-[8px] xs:text-[10px] sm:text-xs md:text-sm font-bold"
           >
             The Poetic Resonance of Aman
           </motion.p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
         {/* Intro Verses */}
         <div className="space-y-6 sm:space-y-8 md:space-y-12 flex flex-col justify-center">
           <PoemCard delay={0.1}>
             <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
-            <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।</p>
+            <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।।</p>
             <div className="h-4" />
             <p>पूछते हैं उनसे अकेलेपन की इंतहाँ ?</p>
             <p className="text-sky-200/80">वो ख़ुद अपने जनाज़े में शामिल ना था ।</p>
@@ -773,28 +786,20 @@ const MindspaceView: React.FC = () => {
           <p>उसने मेरे कंधे पर हाथ रखा ऐसे,<br /><span className="text-sky-200/80">कोई आसमाँ का ठिकाना चाहता था।</span></p>
           <p>लाज़िमी तो नहीं पर बस शब-ए-फ़िराक़ में,<br /><span className="text-sky-200/80">अपनी ग़लतियों के वाजिब, ग़ुरुर एक आशियाना चाहता था ।</span></p>
           <p>उसको सरे-आफ़ताब पर बिठा के अमन से दरिया,<br /><span className="text-sky-200/80">दरिया के किनारे में ठिकाना चाहता था।</span></p>
-          <p>नुमाइश की सौख कोई नहीं मुझको ।२।<br /><span className="text-sky-200/80">साहिर तो फ़क़त एक ज़माना चाहता था।</span></p>
+          <p>नुमाइश की सौख कोई नहीं मुझको ।।<br /><span className="text-sky-200/80">साहिर तो फ़क़त एक ज़माना चाहता था।</span></p>
+          <p className="text-sky-200/80">साहिर तो फ़कत एक ज़माना चाहता था।</p>
           <p>उन दुश्मनों को भी याद रखे मुसल्सल ज़माना,</p>
           <p><span className="text-sky-200/80">वैरी फ़रेब के बदले मर जाना चाहता था।</span></p>
-          <p>सुनते थका नहीं आरज़ू वो सारे जहाँ की ।२।<br /><span className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</span></p>
+          <p>सुनते थका नहीं आरज़ू वो सारे जहाँ की ।।<br /><span className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</span></p>
+          <p className="text-sky-200/80">सारे जहाँ को एक उम्र पहले, वो छोड़ जाना चाहता था।</p>
           <p>ये उजड़े हुए घरों को देख के ठहर गया वरना,<br /><span className="text-sky-200/80">वो इन हाथों से अपना घर सजाना चाहता था।</span></p>
           <p>हर एक को राह में पत्थर दिख रहा है एक,<br /><span className="text-sky-200/80">बेज़ुबा! इन जाने वालों को मनाना चाहता था।</span></p>
-          <p>क़त्ल से पहले का एक ख़त मिला है मुझको (2)<br /><span className="text-sky-200/80">ये लटका हुआ हक़ीक़त में, बदल जाना चाहता था ।२।</span></p>
-
-          <div className="mt-8 pt-8 border-t border-white/5 text-sm text-slate-500 font-normal italic space-y-2">
-            <p>Jaun Tumhe kuch batana chahta tha</p>
-            <p>safar ko chor k wo ghar aana chahta tha</p>
-            <p>jhurriyon ko lapet k meri aankhon par</p>
-            <p>Nakhuda sailaab chipana chahta tha.</p>
-            <p>...</p>
-            <p>Katal se pehle ka ek khat मिला h मुझको</p>
-            <p>Ye latka hua haqiqat me badal jana chahta tha !</p>
-            <p className="text-sky-400 not-italic font-bold mt-4">- Aman</p>
-          </div>
+          <p>क़त्ल से पहले का एक ख़त मिला है मुझको.. |2|<br /><span className="text-sky-200/80">ये लटका हुआ हक़ीक़त में, बदल जाना चाहता था ।।</span></p>
+          <p className="text-sky-200/80">ये लटका हुआ, हक़ीक़त में, बदल जाना चाहता था ।।</p>
         </PoemCard>
       </div>
 
-      <div className="mt-12 sm:mt-20 space-y-12 sm:space-y-20">
+      <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
         <PoemCard title="हमसफ़र" featured>
           <p>आसमाँ से छिपा के सख़्सियत अपनी ,<br /><span className="text-sky-200/80">सितारों को साहिल हमसफ़र समझते हैं।</span></p>
           <p>मोहब्बत भी फ़क़त फकीरी है,<br /><span className="text-sky-200/80">ये उनके दिल को अपना घर समझते हैं।</span></p>
@@ -803,15 +808,16 @@ const MindspaceView: React.FC = () => {
           <p>मौत जिनको अज़ीज़ है मुद्दतों से जानी,<br /><span className="text-sky-200/80">उनकी आँखों में देखने से डरते हैं।</span></p>
           <p>"उन्हें क्या लेना देना तुम्हारे ज़ख्म की गहराइयों से,<br /><span className="text-sky-200/80">इल्ज़ाम दिल पर लगाते है,जो जिगर देखते हैं।</span></p>
           <p>उनके शहर के लोग कह रहे थे मुझको,<br /><span className="text-sky-200/80">गुज़रने वाले यहाँ एक रोज़, ठहर कर देखते हैं।"</span></p>
-          <p>और,<br />वहम के मारे हैं ये इश्क़ को क़ातिल बताने वाले ।२।<br /><span className="text-sky-200/80">ये चाँद के मुरीद हैं! जो इन्हें जी भर कर देखते हैं।।</span></p>
+          <p>और,<br />वहम के मारे हैं ये इश्क़ को क़ातिल बताने वाले ।।<br /><span className="text-sky-200/80">ये चाँद के मुरीद हैं! जो इन्हें जी भर कर देखते हैं।।</span></p>
           <p className="mt-4 text-sky-400 font-bold">- अमन</p>
         </PoemCard>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 xs:gap-6 sm:gap-8 md:gap-12">
           <PoemCard title="साथ कौन है?">
             <p>वो मेरे सीने में धड़कन अपनी , सहेज कुछ यूँ रहा है<br /><span className="text-sky-200/80">वो इस क़दर जकड़ के भी मुझको, ढूँड़ तो सुकूँ रहा है !</span></p>
             <div className="h-px bg-white/5 w-full my-4" />
             <p>वो जिसे आरज़ू सिर्फ़ मेरी हुआ करती थी जाना<br /><span className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</span></p>
+            <p className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</p>
           </PoemCard>
 
           <PoemCard title="कौन जाने मोहब्बत">
@@ -819,12 +825,12 @@ const MindspaceView: React.FC = () => {
             <p>ये इतने सारे बिन पगड़ी के लोग? ( पगड़ी - ज़मीर )<br /><span className="text-sky-200/80">ये कौन हैं, ये कहाँ से आए हैं?</span></p>
             <p>मसला सुनो!! जाँ नहीं निकलती तबीब!! (तबीब- डॉक्टर)<br /><span className="text-sky-200/80">ये महफ़िल में मेरी जाँ, मेरी दवा लूटा के आए हैं!</span></p>
             <p>उनके बारे में कहानियों में सुना था,<br /><span className="text-sky-200/80">हवाएँ मदहोश लगे, समझना उसने गीले बाल सुखाए हैं।</span></p>
-            <p>और,<br />चाँद की बातें करने वाले उनके अज़ीज़ हुए! ।२।<br /><span className="text-sky-200/80">दीद को तरस रहे, जाहिल जो चाँद तोड़ के लाए हैं!</span></p>
+            <p>और,<br />चाँद की बातें करने वाले उनके अज़ीज़ हुए! ।।<br /><span className="text-sky-200/80">दीद को तरस रहे, जाहिल जो चाँद तोड़ के लाए हैं!</span></p>
           </PoemCard>
         </div>
       </div>
 
-      <div className="mt-12 sm:mt-20 space-y-12 sm:space-y-20">
+      <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
         <PoemCard title="दस्तार" featured>
           <p>उनको छू कर हवा कहती है मुझसे</p>
           <p className="text-sky-200/80">तमाशा देखेंगे, ख़ुद को साहिब-ए-ईसार बताने वाले</p>
@@ -857,12 +863,14 @@ const MindspaceView: React.FC = () => {
           <p className="text-sky-200/80">मेरी ज़ाँ इसी बात पर वो मुझसे झगड़ रहा था।</p>
           <p>वो मेरा नाम लेता है ऐसे |2|</p>
           <p className="text-sky-200/80">कोई क़त्ल करके मुकर रहा था।</p>
+          <p className="text-sky-200/80">कोई क़त्ल करके मुकर रहा था।</p>
           <p>फ़क़त एक आदमी था उस आईने के सामने,</p>
           <p className="text-sky-200/80">आईने में जैसे कोई भीड़ उमड़ रहा था ।</p>
           <p>ज़ेहन में सोचा था एक शहर रंग का</p>
           <p className="text-sky-200/80">रंग जो उसकी आँखों से उतर रहा था।</p>
           <p>और</p>
           <p>जिसे ज़ेहन से निकालने की ज़हमत है सारी ।2|</p>
+          <p className="text-sky-200/80">वो मेरे सीने में घर कर रहा था ।।</p>
           <p className="text-sky-200/80">वो मेरे सीने में घर कर रहा था ।।</p>
           <p className="mt-4 text-sky-400 font-bold">— अमन</p>
         </PoemCard>

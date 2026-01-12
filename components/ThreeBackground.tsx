@@ -61,19 +61,52 @@ const ThreeBackground: React.FC<ThreeBackgroundProps> = ({ currentView }) => {
 
     let mouseX = 0;
     let mouseY = 0;
+    let isMouseMoving = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    
     const onMouseMove = (e: MouseEvent) => {
       mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
       mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+      
+      // Detect if mouse is actively moving
+      if (lastMouseX !== e.clientX || lastMouseY !== e.clientY) {
+        isMouseMoving = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      }
     };
+    
+    const onMouseEnter = () => {
+      isMouseMoving = true;
+    };
+    
+    const onMouseLeave = () => {
+      isMouseMoving = false;
+      mouseX = 0;
+      mouseY = 0;
+    };
+    
     window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseenter', onMouseEnter);
+    window.addEventListener('mouseleave', onMouseLeave);
 
     const animate = () => {
       frameIdRef.current = requestAnimationFrame(animate);
       
       if (pointsRef.current) {
-        pointsRef.current.rotation.y += 0.0005;
-        pointsRef.current.rotation.x += (mouseY * 0.1 - pointsRef.current.rotation.x) * 0.05;
-        pointsRef.current.rotation.y += (mouseX * 0.1 - pointsRef.current.rotation.y) * 0.05;
+        // Enhanced parallax effect when mouse is moving
+        if (isMouseMoving) {
+          pointsRef.current.rotation.x += (mouseY * 0.2 - pointsRef.current.rotation.x) * 0.08;
+          pointsRef.current.rotation.y += (mouseX * 0.2 - pointsRef.current.rotation.y) * 0.08;
+          
+          // Increase particle size slightly for more dynamic effect
+          (pointsRef.current.material as THREE.PointsMaterial).size = 0.025;
+        } else {
+          // Subtle auto-rotation when mouse is idle
+          pointsRef.current.rotation.y += 0.001;
+          (pointsRef.current.material as THREE.PointsMaterial).size = 0.02;
+        }
       }
 
       renderer.render(scene, camera);
@@ -91,6 +124,8 @@ const ThreeBackground: React.FC<ThreeBackgroundProps> = ({ currentView }) => {
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseenter', onMouseEnter);
+      window.removeEventListener('mouseleave', onMouseLeave);
       if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
       if (containerRef.current && renderer.domElement) {
         containerRef.current.removeChild(renderer.domElement);
