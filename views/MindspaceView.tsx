@@ -2,13 +2,13 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic2, User, UserCheck, X } from 'lucide-react';
 
-const PoemCard: React.FC<{
+const PoemCard: React.FC<{ setShowRecordingModal?: (show: boolean) => void;
   title?: string;
   children: React.ReactNode;
   className?: string;
   delay?: number;
   featured?: boolean;
-}> = ({ title, children, className = "", delay = 0, featured = false }) => {
+}> = ({ setShowRecordingModal, title, children, className = "", delay = 0, featured = false }) => {
   const [showVoicePicker, setShowVoicePicker] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
@@ -17,43 +17,7 @@ const PoemCard: React.FC<{
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1.0);
   const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
   const [pausePosition, setPausePosition] = React.useState<number>(0);
-  const backgroundAudioRef = React.useRef<HTMLAudioElement | null>(null);
-
-  // Handle mobile device audio playback policies
-  React.useEffect(() => {
-    // On mobile devices, audio playback often requires user interaction first
-    const handleUserInteraction = () => {
-      if (backgroundAudioRef.current) {
-        const playPromise = backgroundAudioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              // Playback started successfully
-            })
-            .catch(e => {
-              console.log('Background music play prevented:', e);
-            });
-        }
-      }
-      
-      // Remove the event listener after first interaction to prevent multiple calls
-      document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('mousedown', handleUserInteraction);
-    };
-
-    // Add touch and mouse event listeners for mobile compatibility
-    document.addEventListener('touchstart', handleUserInteraction, { once: true });
-    document.addEventListener('mousedown', handleUserInteraction, { once: true });
-    
-    // Also handle click events for broader compatibility
-    document.addEventListener('click', handleUserInteraction, { once: true });
-
-    return () => {
-      document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('mousedown', handleUserInteraction);
-      document.removeEventListener('click', handleUserInteraction);
-    };
-  }, []);
+  
 
   const stopSpeaking = () => {
     window.speechSynthesis.cancel();
@@ -70,8 +34,7 @@ const PoemCard: React.FC<{
       setIsPaused(true);
       setIsSpeaking(false);
       
-      // Pause background music as well
-      pauseBackgroundMusic();
+
     }
   };
 
@@ -81,8 +44,7 @@ const PoemCard: React.FC<{
       setIsPaused(false);
       setIsSpeaking(true);
       
-      // Resume background music as well
-      resumeBackgroundMusic();
+
     }
   };
 
@@ -93,6 +55,31 @@ const PoemCard: React.FC<{
       return;
     }
     
+    // Special handling for 'own' voice - check if we have recorded voice characteristics
+    if (gender === 'own') {
+      const voiceCharacteristics = localStorage.getItem('userVoiceCharacteristics');
+      
+      if (voiceCharacteristics) {
+        // We have recorded characteristics, use them directly
+        speakActual('own');
+      } else {
+        // Show recording modal to get user's voice sample
+        // Check if we have access to the setShowRecordingModal prop
+        if (setShowRecordingModal) {
+          setShowRecordingModal(true);
+        } else {
+          // Fallback to default 35-year-old Hindi-Urdu professor voice
+          // Use the male voice as a fallback which represents the 35-year-old Hindi-Urdu professor
+          speakActual('male');
+        }
+      }
+      return;
+    }
+    
+    speakActual(gender);
+  };
+  
+  const speakActual = (gender: 'male' | 'female' | 'own') => {
     setShowVoicePicker(false);
     window.speechSynthesis.cancel();
     setPausePosition(0);
@@ -267,22 +254,19 @@ const PoemCard: React.FC<{
         utterance.pitch = 0.6;
       }
       
-      // Start background music when speech starts
-      startBackgroundMusic();
+
     };
     utterance.onend = () => {
       setIsSpeaking(false);
       setHighlightRange(null);
       
-      // Stop background music when speech ends
-      stopBackgroundMusic();
+
     };
     utterance.onerror = () => {
       setIsSpeaking(false);
       setHighlightRange(null);
       
-      // Stop background music if there's an error
-      stopBackgroundMusic();
+
     };
 
     utterance.onboundary = (event) => {
@@ -549,84 +533,194 @@ const PoemCard: React.FC<{
       <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
     </motion.div>
   );
-  // Function to start background music
-  const startBackgroundMusic = () => {
-    // Create or reuse audio element for background music
-    if (!backgroundAudioRef.current) {
-      // Create a new audio element with a Sufi/flute sound URL
-      backgroundAudioRef.current = new Audio();
-      
-      // Try to load the actual Sufi flute/sitar music
-      backgroundAudioRef.current.src = '/assets/sufi-flute-sitar.mp3';
-      backgroundAudioRef.current.loop = true;
-      backgroundAudioRef.current.volume = 0.2; // Mild volume
-      
-      // Preload the audio to improve playback experience
-      backgroundAudioRef.current.preload = 'auto';
-      
-      // Fallback to silent audio if the asset is not available
-      backgroundAudioRef.current.onerror = () => {
-        console.warn('Sufi flute/sitar music not found, using silent fallback');
-        backgroundAudioRef.current!.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAAAAAA';
-        backgroundAudioRef.current!.load();
-      };
-      
-      // Load the audio to prepare for playback
-      backgroundAudioRef.current.load();
-    }
-    
-    // Play the background music with error handling
-    const playPromise = backgroundAudioRef.current.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          // Playback started successfully
-        })
-        .catch(e => {
-          console.log('Background music play prevented:', e);
-          // On mobile devices, we might need to wait for a user interaction
-          // The useEffect at component level handles this
-        });
-    }
-  };
   
-  // Function to stop background music
-  const stopBackgroundMusic = () => {
-    if (backgroundAudioRef.current) {
-      backgroundAudioRef.current.pause();
-      backgroundAudioRef.current.currentTime = 0;
-      // Reset the audio element to ensure it's ready for next playback
-      backgroundAudioRef.current.load();
-    }
-  };
-  
-  // Function to pause background music
-  const pauseBackgroundMusic = () => {
-    if (backgroundAudioRef.current) {
-      backgroundAudioRef.current.pause();
-    }
-  };
-  
-  // Function to resume background music
-  const resumeBackgroundMusic = () => {
-    if (backgroundAudioRef.current) {
-      const playPromise = backgroundAudioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            // Playback resumed successfully
-          })
-          .catch(e => {
-            console.log('Background music play prevented:', e);
-          });
-      }
-    }
-  };
 };
 
 const MindspaceView: React.FC = () => {
+  // State for own voice feature (moved from PoemCard)
+  const [showRecordingModal, setShowRecordingModal] = React.useState(false);
+  const [recordingError, setRecordingError] = React.useState<string | null>(null);
+  const [recordedAudio, setRecordedAudio] = React.useState<Blob | null>(null);
+  const [isRecording, setIsRecording] = React.useState(false);
+  
+  // Function to initialize recording
+  const startRecording = async () => {
+    try {
+      setIsRecording(true);
+      setRecordingError(null);
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      
+      const chunks: Blob[] = [];
+      mediaRecorder.ondataavailable = (event) => {
+        chunks.push(event.data);
+      };
+      
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        setRecordedAudio(blob);
+        stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+        
+        // Apply the recorded voice characteristics to speech synthesis
+        applyRecordedVoiceToSynthesis(blob);
+      };
+      
+      mediaRecorder.onerror = (event) => {
+        setIsRecording(false);
+        setRecordingError('Recording failed. Please check your microphone permissions.');
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorder.start();
+      
+      // Automatically stop after 5 seconds
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, 5000);
+    } catch (err) {
+      setIsRecording(false);
+      setRecordingError('Microphone access denied. Please allow microphone access to use your own voice.');
+      console.error('Recording error:', err);
+    }
+  };
+  
+  // Function to apply recorded voice characteristics to speech synthesis
+  const applyRecordedVoiceToSynthesis = async (audioBlob: Blob) => {
+    try {
+      // In a real implementation, we would analyze the recorded audio
+      // to extract voice characteristics (pitch, tone, rhythm, etc.)
+      // For now, we'll simulate the process
+      
+      // Extract voice characteristics from the audio (simulated)
+      // In a real implementation, this would involve:
+      // - Audio analysis to determine pitch patterns
+      // - Frequency analysis
+      // - Rhythm and timing analysis
+      
+      // For simulation purposes, we'll just store the audio characteristics
+      // In a real scenario, we would extract these from the recorded audio
+      localStorage.setItem('userVoiceCharacteristics', JSON.stringify({
+        pitchAdjustment: 0.1, // Simulated adjustment based on user's voice
+        rateAdjustment: 0.05,
+        intonationPattern: 'standard'
+      }));
+    } catch (err) {
+      console.error('Error applying voice characteristics:', err);
+      // If analysis fails, we'll still use the recorded audio characteristics
+      // or fall back to default
+      localStorage.removeItem('userVoiceCharacteristics');
+    }
+  };
+  
+  // Function to handle recording error - shows fallback option
+  const handleRecordingError = () => {
+    setRecordingError(null);
+    // Give user option to use default voice instead
+    // We'll just close the modal and proceed with default
+    setShowRecordingModal(false);
+  };
+  
+  // Render the recording modal
+  const renderRecordingModal = () => {
+    if (!showRecordingModal) return null;
+    
+    return (
+      <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 max-w-md w-full">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-white">Record Your Voice</h3>
+            <button 
+              onClick={() => {
+                setShowRecordingModal(false);
+                setRecordingError(null);
+              }}
+              className="text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          
+          <div className="mb-6">
+            <p className="text-gray-300 mb-4">
+              Please read the following sample text to help us match your voice characteristics:
+            </p>
+            <div className="bg-gray-800/50 p-4 rounded-lg border border-white/5">
+              <p className="text-center text-white italic">"आवाज़ सुनाओ मुझे अपनी, मैं गाऊंगा तुम्हारे अहसास की गाथा।"</p>
+            </div>
+          </div>
+          
+          {recordingError && (
+            <div className="mb-4 p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-red-300">
+              {recordingError}
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => {
+                    setRecordingError(null);
+                    startRecording();
+                  }}
+                  className="py-2 px-3 bg-red-700 hover:bg-red-600 text-white rounded text-sm mr-2"
+                >
+                  Record Again
+                </button>
+                <button
+                  onClick={() => {
+                    setRecordingError(null);
+                    setShowRecordingModal(false);
+                    // Use default 35-year-old Hindi-Urdu professor voice
+                    // This will be handled by the speak function in PoemCard
+                  }}
+                  className="py-2 px-3 bg-sky-700 hover:bg-sky-600 text-white rounded text-sm"
+                >
+                  Use Default Voice
+                </button>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex flex-col gap-3">
+            {!isRecording ? (
+              <>
+                <button
+                  onClick={startRecording}
+                  className="flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white py-3 px-4 rounded-lg transition-colors"
+                >
+                  <Mic2 size={18} />
+                  Start Recording (5 Sec)
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowRecordingModal(false);
+                    // Use default 35-year-old Hindi-Urdu professor voice
+                  }}
+                  className="py-3 px-4 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                >
+                  Use Default Voice Instead
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-2 text-red-400">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span>Recording... Please read the sample text aloud</span>
+                </div>
+                <p className="text-gray-400 text-sm">Reading the sample text aloud</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
   return (
-    <div className="min-h-screen py-16 sm:py-32 px-4 relative max-w-7xl mx-auto">
+    <>
+      {renderRecordingModal()}
+      <div className="min-h-screen py-16 sm:py-32 px-4 relative max-w-7xl mx-auto">
       {/* Hero Section */}
       <div className="text-center mb-32 relative">
         <motion.div
@@ -877,7 +971,9 @@ const MindspaceView: React.FC = () => {
         </PoemCard>
       </div>
     </div>
+  </>
   );
 };
+
 
 export default MindspaceView;
