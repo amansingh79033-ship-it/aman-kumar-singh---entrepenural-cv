@@ -6,7 +6,7 @@ export default async function handler(request: Request) {
     try {
         const { password } = await request.json();
 
-        if (password === 'aman2025#') {
+        if (password === 'aman2025@#') {
             // In a real app, you would return a secure HttpOnly cookie here.
             // For this simple version, we'll return a success token.
             return new Response(JSON.stringify({ success: true, token: 'authenticated_session_token' }), {

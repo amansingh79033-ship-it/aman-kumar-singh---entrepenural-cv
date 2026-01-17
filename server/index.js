@@ -21,6 +21,17 @@ app.get('/api/data', (req, res) => {
     res.json(db);
 });
 
+app.post('/api/auth', (req, res) => {
+    const { password } = req.body;
+    console.log('POST /api/auth - Login attempt');
+
+    if (password === 'aman2025@#') {
+        res.json({ success: true, token: 'authenticated_session_token' });
+    } else {
+        res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+});
+
 app.post('/api/data', (req, res) => {
     const { action, payload } = req.body;
     console.log(`POST /api/data - Action: ${action}`, payload);
