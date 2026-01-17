@@ -1,4 +1,4 @@
-import { sql } from '@vercel/postgres';
+import { sql, createTables } from './db';
 
 export const config = {
     runtime: 'edge',
@@ -7,47 +7,34 @@ export const config = {
 export default async function handler(request: Request) {
     try {
         if (request.method === 'GET') {
-            const { rows: visitsRaw } = await sql`SELECT * FROM visits ORDER BY timestamp DESC LIMIT 1000`;
-            const { rows: messagesRaw } = await sql`SELECT * FROM messages ORDER BY timestamp DESC`;
-            const { rows: resourcesRaw } = await sql`SELECT * FROM resources ORDER BY uploaded_at DESC`;
-            const { rows: showcaseItemsRaw } = await sql`SELECT * FROM showcase_items ORDER BY sort_order ASC`;
-            const { rows: frozenIps } = await sql`SELECT ip FROM frozen_ips`;
+            try {
+                const { rows: visitsRaw } = await sql`SELECT * FROM visits ORDER BY timestamp DESC LIMIT 1000`;
+                const { rows: messagesRaw } = await sql`SELECT * FROM messages ORDER BY timestamp DESC`;
+                const { rows: resourcesRaw } = await sql`SELECT * FROM resources ORDER BY uploaded_at DESC`;
+                const { rows: showcaseItemsRaw } = await sql`SELECT * FROM showcase_items ORDER BY sort_order ASC`;
+                const { rows: frozenIps } = await sql`SELECT ip FROM frozen_ips`;
 
-            // Transform snake_case to camelCase
-            const visits = visitsRaw.map(v => ({
-                ...v,
-                userAgent: v.user_agent
-            }));
-
-            const messages = messagesRaw.map(m => ({
-                ...m,
-                audioUrl: m.audio_url
-            }));
-
-            const resources = resourcesRaw.map(r => ({
-                ...r,
-                uploadedAt: r.uploaded_at
-            }));
-
-            const showcaseItems = showcaseItemsRaw.map(s => ({
-                ...s,
-                // image and title match
-                // id matches
-            }));
-
-            return new Response(JSON.stringify({
-                visits: visits || [],
-                messages: messages || [],
-                resources: resources || [],
-                showcaseItems: showcaseItems || [],
-                frozenIps: frozenIps.map(row => row.ip) || []
-            }), {
-                status: 200,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Cache-Control': 'no-store'
-                },
-            });
+                return new Response(JSON.stringify({
+                    visits: (visitsRaw || []).map(v => ({ ...v, userAgent: v.user_agent })),
+                    messages: (messagesRaw || []).map(m => ({ ...m, audioUrl: m.audio_url })),
+                    resources: (resourcesRaw || []).map(r => ({ ...r, uploadedAt: r.uploaded_at })),
+                    showcaseItems: showcaseItemsRaw || [],
+                    frozenIps: (frozenIps || []).map(row => row.ip)
+                }), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+                });
+            } catch (dbError: any) {
+                // If tables don't exist, try creating them once
+                if (dbError.message?.includes('relation') || dbError.message?.includes('does not exist')) {
+                    console.log('Tables missing, initializing...');
+                    await createTables();
+                    return new Response(JSON.stringify({
+                        visits: [], messages: [], resources: [], showcaseItems: [], frozenIps: []
+                    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+                }
+                throw dbError;
+            }
         } else if (request.method === 'POST') {
             const body = await request.json();
             const { action, payload } = body;
@@ -56,6 +43,7 @@ export default async function handler(request: Request) {
                 const { ip, path, userAgent } = payload;
                 await sql`INSERT INTO visits (ip, path, timestamp, status, user_agent) VALUES (${ip}, ${path}, ${Date.now()}, 'active', ${userAgent || ''})`;
             }
+            // ... rest of the handlers
             else if (action === 'addMessage') {
                 const { audioUrl, duration } = payload;
                 await sql`INSERT INTO messages (audio_url, duration, timestamp) VALUES (${audioUrl}, ${duration}, ${Date.now()})`;
@@ -84,7 +72,6 @@ export default async function handler(request: Request) {
             }
             else if (action === 'addShowcaseFrame') {
                 const { image, title } = payload;
-                // Get max sort order
                 const { rows } = await sql`SELECT MAX(sort_order) as max_order FROM showcase_items`;
                 const nextOrder = (rows[0]?.max_order || 0) + 1;
                 await sql`INSERT INTO showcase_items (image, title, sort_order) VALUES (${image}, ${title}, ${nextOrder})`;
@@ -97,14 +84,6 @@ export default async function handler(request: Request) {
                 const { id, image } = payload;
                 await sql`UPDATE showcase_items SET image = ${image} WHERE id = ${id}`;
             }
-            else if (action === 'reorderShowcase') {
-                // This is complex to do in one SQL, for now simplistic approach or just update all
-                // Simpler: Payload contains new order of IDs?
-                // For MVP: client sends start/end index, but server doesn't know specific IDs easily without full list
-                // To keep it simple: We won't implement reorder persistence in this MVP iteration unless requested
-                // or we update the sort_order for the specific moved item?
-                // skipping strict reorder persistence for this quick fix, or just acknowledge it
-            }
 
             return new Response(JSON.stringify({ success: true }), {
                 status: 200,
@@ -112,15 +91,21 @@ export default async function handler(request: Request) {
             });
         }
 
-        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-            status: 405,
-            headers: { 'Content-Type': 'application/json' },
-        });
-    } catch (error) {
-        console.error('API Error:', error);
-        return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
-            status: 500,
+        return new Response(JSON.stringify({ success: true }), {
+            status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
     }
+
+        return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json' },
+    });
+} catch (error) {
+    console.error('API Error:', error);
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+    });
+}
 }

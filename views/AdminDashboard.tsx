@@ -223,13 +223,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                         </div>
                         <h1 className="text-5xl font-display font-bold">Archive <span className="text-sky-300">Intelligence.</span></h1>
                     </div>
-                    <div className="glass px-6 py-4 rounded-2xl flex items-center gap-6">
-                        <div className="text-right">
-                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">System Status</div>
-                            <div className="text-sky-300 font-mono text-xs uppercase">Operational // Stable</div>
-                        </div>
-                        <div className="w-10 h-10 rounded-full border-2 border-sky-400/20 flex items-center justify-center">
-                            <div className="w-2 h-2 bg-sky-400 rounded-full animate-ping" />
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => useStore.getState().fetchData()}
+                            className="p-3 glass rounded-xl text-sky-400 hover:bg-sky-400 hover:text-black transition-all group relative"
+                            title="Force Sync Data"
+                        >
+                            <Activity size={18} className="group-hover:rotate-180 transition-transform duration-500" />
+                            <span className="absolute bottom-full right-0 mb-2 px-2 py-1 bg-black text-[8px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap rounded border border-white/10 uppercase tracking-widest font-bold">Manual Sync</span>
+                        </button>
+                        <div className="glass px-6 py-4 rounded-2xl flex items-center gap-6">
+                            <div className="text-right">
+                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">System Status</div>
+                                <div className="text-sky-300 font-mono text-xs uppercase">Operational // Stable</div>
+                            </div>
+                            <div className="w-10 h-10 rounded-full border-2 border-sky-400/20 flex items-center justify-center">
+                                <div className="w-2 h-2 bg-sky-400 rounded-full animate-ping" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -377,7 +387,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                     <button
                                         onClick={() => {
                                             const audio = new Audio(m.audioUrl);
-                                            audio.play();
+                                            audio.play().catch(e => console.warn("Audio playback failed:", e));
                                         }}
                                         className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-sky-400 hover:text-black border border-white/10 hover:border-transparent py-4 rounded-2xl transition-all font-bold uppercase tracking-widest text-[10px]"
                                     >
