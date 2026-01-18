@@ -11,11 +11,21 @@ interface Prediction {
   status: string;
   color: string;
   shape: 'sphere' | 'torus' | 'octahedron';
+  trendData: number[];
   details: {
     research: string;
     facts: string[];
     alignment: string;
+    metrics: { label: string; value: string; trend: 'up' | 'down' }[];
   };
+}
+
+interface NewsItem {
+  id: string;
+  title: string;
+  source: string;
+  time: string;
+  relevance: string;
 }
 
 const AnalysisView: React.FC = () => {
@@ -24,68 +34,112 @@ const AnalysisView: React.FC = () => {
   const predictions: Prediction[] = [
     {
       date: "Q1 2022",
-      target: "Byju's / Unacademy",
+      target: "Project EdTech Bubble",
       insight: "Static units & rogue staff behavior will cause a 90% drop in trust.",
       status: "Verified",
-      color: "#f87171", // Red
+      color: "#f87171",
       shape: "octahedron",
+      trendData: [100, 95, 80, 40, 20, 10, 5],
       details: {
         research: "The EdTech bubble burst was mathematically inevitable due to High CAC (Customer Acquisition Cost) vs Low LTV (Lifetime Value). The unit economics were sustained only by VC capital infusion, not revenue.",
         facts: [
-          "Valuation crash from $22B to <$1B.",
-          "Mass layoffs exceeding 25,000 workforce.",
-          "Regulatory scrutiny over predatory loan practices."
+          "Valuation crash from $22B to <$1B within 24 months.",
+          "Mass layoffs exceeding 25,000 workforce globally in EdTech.",
+          "Regulatory scrutiny over predatory loan practices in India."
+        ],
+        metrics: [
+          { label: "Trust Index", value: "-92%", trend: 'down' },
+          { label: "Burn Rate", value: "$100M/mo", trend: 'up' },
+          { label: "Offline Pivot", value: "Too Late", trend: 'down' }
         ],
         alignment: "Current market shift towards offline/hybrid centers (Allen, PhysicsWallah) confirms the failure of purely digital-only pedagogy for core K-12 education."
       }
     },
     {
       date: "Q4 2023",
-      target: "Quick Commerce",
+      target: "Quick Commerce 2.0",
       insight: "Shift from delivery-speed to 'treatment-speed' essential for survival.",
       status: "In Action",
-      color: "#facc15", // Yellow
+      color: "#facc15",
       shape: "torus",
+      trendData: [10, 25, 45, 70, 85, 95, 100],
       details: {
         research: "Dopamine-driven delivery loops have diminishing returns. The pivot must be from 'Speed' to 'Service Quality' (The Treatment Economy). Consumers value reliability over instant gratification once the novelty wears off.",
         facts: [
           "Blinkit/Zepto overtaking traditional e-commerce in high-density urban zones.",
-          "Average Order Value (AOV) stagnating despite volume growth.",
-          "High burn rate in last-mile logistics."
+          "Zepto valuation reached $5B after series G funding.",
+          "Integration of non-grocery items now accounts for 25% of GOV."
+        ],
+        metrics: [
+          { label: "SKU Diversity", value: "+300%", trend: 'up' },
+          { label: "Dark Store Density", value: "Optimal", trend: 'up' },
+          { label: "Margin Growth", value: "+8%", trend: 'up' }
         ],
         alignment: "Rise of 'Dark Stores' as new retail warehouses and the integration of high-margin categories (electronics, gifts) validates the move towards a broader utility model."
       }
     },
     {
       date: "Q2 2024",
-      target: "AHI Narrative",
-      insight: "Market will tire of LLMs; focus will shift to AHI (Human Augmentation).",
+      target: "The AHI Pivot",
+      insight: "Market will tire of generic LLMs; focus will shift to Human Augmentation (AHI).",
       status: "Emerging",
-      color: "#38bdf8", // Blue
+      color: "#38bdf8",
       shape: "sphere",
+      trendData: [5, 15, 30, 50, 65, 80, 90],
       details: {
         research: "LLMs are reasoning engines, not sentient minds. The bottleneck is context synthesis, which AHI (Assistance to Human Intelligence) solves via Vector Retrieval Augmented Generation (RAG) and Agentic Workflows.",
         facts: [
-          "Enterprise AI churn rate increasing due to hallucination risks.",
-          "Investor fatigue with generic 'Wrapper' startups.",
-          "Rise of 'Small Language Models' (SLMs) running locally."
+          "Enterprise AI churn rate increased 40% due to hallucination risks.",
+          "Gartner Hype Cycle shows 'Generative AI' entering the Trough of Disillusionment.",
+          "Rise of 'Small Language Models' (SLMs) running locally on user hardware."
+        ],
+        metrics: [
+          { label: "RAG Adoption", value: "+120%", trend: 'up' },
+          { label: "ROI Clarity", value: "Search Phase", trend: 'down' },
+          { label: "Local Models", value: "Primary", trend: 'up' }
         ],
         alignment: "Major players like Microsoft (Copilot) & Apple (Intelligence) are rebranding to 'Assistance' features, explicitly moving away from the 'Replacement' rhetoric to 'Augmentation'."
       }
     }
   ];
 
+  const newsFeed: NewsItem[] = [
+    { id: '1', title: "Byju's valuation slashed to zero by BlackRock", source: "Bloomberg", time: "2h ago", relevance: "Critical" },
+    { id: '2', title: "Zepto raises $665M to triple dark store count", source: "TechCrunch", time: "5h ago", relevance: "Market Shift" },
+    { id: '3', title: "Gartner drops GenAI into 'Trough of Disillusionment'", source: "Gartner", time: "1d ago", relevance: "Validation" },
+    { id: '4', title: "Local SLMs outperform GPT-4 in niche medical coding", source: "Nature Port", time: "3d ago", relevance: "Strategy" }
+  ];
+
   return (
     <div className="pt-32 pb-20 px-6 min-h-screen max-w-7xl mx-auto relative">
       <div className="flex flex-col lg:flex-row gap-20 items-start">
-        <div className="lg:w-1/3 sticky top-32">
-          <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 leading-none">Market <br /><span className="text-sky-300">Forensics.</span></h2>
-          <p className="text-slate-500 leading-relaxed mb-12">
-            Utilizing high-level pattern recognition to predict market shifts before they manifest in data.
-          </p>
+        <div className="lg:w-1/3 space-y-8 sticky top-32">
+          <div>
+            <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-8 leading-none">Market <br /><span className="text-sky-300">Forensics.</span></h2>
+            <p className="text-slate-500 leading-relaxed mb-8">
+              Utilizing high-level pattern recognition to predict market shifts before they manifest in data.
+            </p>
+          </div>
+
           <div className="p-8 glass rounded-3xl border-yellow-200/10">
             <h4 className="text-yellow-100 font-bold text-xs uppercase tracking-widest mb-4">Core Thesis</h4>
             <p className="text-sm italic">"If you wait for the data, you're already behind. Forensics is about reading the vibrations."</p>
+          </div>
+
+          <div className="space-y-4">
+            <h4 className="text-sky-400 font-bold text-[10px] uppercase tracking-widest px-2">Forensic News Feed</h4>
+            <div className="space-y-3">
+              {newsFeed.map(news => (
+                <div key={news.id} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] text-sky-500 font-bold">{news.source}</span>
+                    <span className="text-[10px] text-slate-600">{news.time}</span>
+                  </div>
+                  <h5 className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">{news.title}</h5>
+                  <div className="mt-2 text-[8px] uppercase tracking-tighter text-slate-500">{news.relevance}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -221,14 +275,56 @@ const AnalysisView: React.FC = () => {
                   {/* Data/Facts */}
                   <div>
                     <h4 className="flex items-center gap-3 text-sky-400 font-bold uppercase tracking-widest text-xs mb-6">
-                      <BarChart3 size={16} /> Verified Data Points
+                      <BarChart3 size={16} /> Forensic Metrics
                     </h4>
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      {selectedPrediction.details.metrics.map((metric, i) => (
+                        <div key={i} className="glass p-6 rounded-2xl border-white/5 bg-white/[0.02]">
+                          <div className="text-slate-500 text-[10px] uppercase tracking-widest mb-2">{metric.label}</div>
+                          <div className="flex items-end gap-2">
+                            <span className="text-2xl font-bold text-white">{metric.value}</span>
+                            <span className={metric.trend === 'up' ? 'text-emerald-400' : 'text-rose-400'}>
+                              {metric.trend === 'up' ? '↗' : '↘'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-4">
                       {selectedPrediction.details.facts.map((fact, i) => (
-                        <div key={i} className="bg-white/5 p-4 rounded-xl border border-white/5 text-sm text-slate-400">
+                        <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-white/[0.03] border border-white/5 text-sm text-slate-400">
+                          <div className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-1.5 flex-shrink-0" />
                           {fact}
                         </div>
                       ))}
+                    </div>
+                  </div>
+
+                  {/* Interactive Trend Chart */}
+                  <div>
+                    <h4 className="flex items-center gap-3 text-sky-400 font-bold uppercase tracking-widest text-xs mb-6">
+                      <Cuboid size={16} /> Trend Projection
+                    </h4>
+                    <div className="h-48 w-full glass rounded-2xl p-6 border-white/5 flex items-end justify-between gap-1 overflow-hidden group">
+                      {selectedPrediction.trendData.map((val, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ height: 0 }}
+                          animate={{ height: `${val}%` }}
+                          transition={{ delay: i * 0.1, duration: 1 }}
+                          className="flex-1 rounded-t-lg transition-colors"
+                          style={{
+                            backgroundColor: selectedPrediction.color,
+                            opacity: 0.3 + (i * 0.1)
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-4 flex justify-between text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                      <span>Threshold</span>
+                      <span>Execution Peak</span>
+                      <span>Outcome</span>
                     </div>
                   </div>
 

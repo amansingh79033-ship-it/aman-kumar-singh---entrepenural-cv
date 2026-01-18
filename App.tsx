@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lenis from 'lenis';
 import Navigation from './components/Navigation.tsx';
@@ -33,8 +33,16 @@ const App: React.FC = () => {
   // Real-time Analytics
   useAnalytics(currentView);
 
+  const lenisRef = useRef<Lenis | null>(null);
+
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+      // Small timeout to allow DOM to update before resizing lenis
+      setTimeout(() => {
+        lenisRef.current?.resize();
+      }, 100);
+    }
   }, [currentView]);
 
   useEffect(() => {
@@ -45,9 +53,15 @@ const App: React.FC = () => {
 
     const lenis = new Lenis({
       duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
       smoothWheel: true,
       wheelMultiplier: 1,
+      touchMultiplier: 2,
     });
+
+    lenisRef.current = lenis;
 
     function raf(time: number) {
       lenis.raf(time);
