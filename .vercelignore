@@ -1,0 +1,24 @@
+# Vercel deployment files
+node_modules
+.env*.local
+.vercel
+
+# Development files
+server
+test-api.js
+*.log
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts (will be rebuilt)
+dist
+
+# Git
+.git
+.gitignore

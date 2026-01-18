@@ -1,4 +1,7 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
@@ -24,8 +27,8 @@
           "value": "1; mode=block"
         },
         {
-          "key": "X-Vercel-Forwarded-For",
-          "value": "1"
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
         }
       ]
     },
@@ -47,5 +50,10 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "edge"
+    }
+  }
 }
