@@ -475,17 +475,17 @@ const PoemCard: React.FC<{
       viewport={{ margin: "-50px" }}
       className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
     >
-      {/* Playback Controls */}
-      <div className="absolute top-2 xs:top-2 sm:top-3 md:top-6 right-2 xs:right-2 sm:right-3 md:right-14 z-20 flex items-center gap-1 xs:gap-1 sm:gap-2 mobile-controls">
+      {/* Playback Controls - Optimized for touch */}
+      <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-14 z-20 flex items-center gap-2 sm:gap-3">
         {!isSpeaking ? (
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowVoicePicker(!showVoicePicker)}
-            className="p-2 xs:p-2.5 sm:p-2.5 md:p-3 bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
+            className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
             title="Hear with emotion"
           >
-            <Mic2 size={14} className="xs:w-[16px] sm:w-[16px] md:w-[18px] md:h-[18px]" />
+            <Mic2 size={18} className="sm:w-5 sm:h-5" />
           </motion.button>
         ) : (
           <motion.button
@@ -494,14 +494,14 @@ const PoemCard: React.FC<{
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ repeat: Infinity, duration: 1 }}
             onClick={isPaused ? resumeSpeaking : pauseSpeaking}
-            className="p-2 xs:p-2.5 sm:p-2.5 md:p-3 bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
+            className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
           >
             {isPaused ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" className="xs:w-[16px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
             ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" className="xs:w-[16px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="6" y="4" width="4" height="16"></rect>
                 <rect x="14" y="4" width="4" height="16"></rect>
               </svg>
@@ -515,31 +515,34 @@ const PoemCard: React.FC<{
               initial={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
               animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
-              className="absolute top-full md:right-full mt-2 md:mt-0 md:mr-4 right-0 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-lg xs:rounded-xl sm:rounded-2xl p-1.5 xs:p-2 flex flex-col gap-1 sm:gap-2 shadow-2xl min-w-[110px] xs:min-w-[120px] sm:min-w-[140px] md:min-w-[120px] mobile-controls"
+              className="absolute top-full md:right-full mt-3 md:mt-0 md:mr-4 right-0 bg-black/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-2xl min-w-[160px] sm:min-w-[180px]"
             >
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 <button
                   onClick={() => speak('male')}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 xs:py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-md xs:rounded-lg text-[7px] xs:text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
                   title="Men Voice"
                 >
-                  <User size={10} className="xs:size-[12px]" /> Men
+                  <User size={16} className="sm:size-5" />
+                  <span>Men</span>
                 </button>
                 <div className="w-[1px] bg-white/10" />
                 <button
                   onClick={() => speak('female')}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 xs:py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-md xs:rounded-lg text-[7px] xs:text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
                   title="Women Voice"
                 >
-                  <UserCheck size={10} className="xs:size-[12px]" /> Women
+                  <UserCheck size={16} className="sm:size-5" />
+                  <span>Women</span>
                 </button>
                 <div className="w-[1px] bg-white/10" />
                 <button
                   onClick={() => speak('own')}
-                  className="flex-1 flex items-center justify-center gap-1 py-1.5 xs:py-2 sm:py-3 md:py-2.5 hover:bg-white/5 rounded-md xs:rounded-lg text-[7px] xs:text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
+                  className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
                   title="My Voice"
                 >
-                  <User size={10} className="xs:size-[12px]" /> My Voice
+                  <User size={16} className="sm:size-5" />
+                  <span>My Voice</span>
                 </button>
               </div>
 
