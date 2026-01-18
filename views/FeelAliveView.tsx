@@ -1,309 +1,278 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import ThreeBrain from '../components/ThreeBrain';
-import { Brain, Heart, Zap, Leaf, AlertTriangle, Sparkles, Wind, Droplets } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion';
+import { Brain, Eye, Sparkles, Zap, Wind, Droplets, Compass, BookOpen, Clock, Users, Lightbulb, AlertCircle } from 'lucide-react';
 
 const FeelAliveView: React.FC = () => {
-  const [mindParalysisActive, setMindParalysisActive] = useState(false);
-  const [focusLevel, setFocusLevel] = useState(100);
-  const [distractions, setDistractions] = useState(0);
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
 
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.8]);
-
-  const triggerMindParalysis = () => {
-    setMindParalysisActive(true);
-    let currentFocus = 100;
-    let currentDistractions = 0;
-
-    const interval = setInterval(() => {
-      currentFocus = Math.max(0, currentFocus - 2);
-      currentDistractions = Math.min(100, currentDistractions + 4);
-      setFocusLevel(currentFocus);
-      setDistractions(currentDistractions);
-      if (currentFocus <= 0) clearInterval(interval);
-    }, 100);
-
-    setTimeout(() => {
-      setMindParalysisActive(false);
-      setFocusLevel(100);
-      setDistractions(0);
-    }, 6000);
-  };
-
-  const themes: Record<string, { color: string, icon: any, label: string, detail: string, sub: string }> = {
-    awareness: {
-      color: 'bg-sky-500/20',
-      icon: <Zap />,
-      label: 'Pure Awareness',
-      detail: 'The ability to observe without judgment is the highest form of intelligence.',
-      sub: 'Detach from the dopamine loops.'
-    },
-    connection: {
-      color: 'bg-rose-500/20',
-      icon: <Heart />,
-      label: 'Neural Resonance',
-      detail: 'Deep, authentic human connection synchronizes brainwaves in ways no algorithm can replicate.',
-      sub: 'Mirror neurons are the basis of empathy.'
-    },
-    nature: {
-      color: 'bg-emerald-500/20',
-      icon: <Leaf />,
-      label: 'Biological Harmony',
-      detail: 'Spending time in nature reduces cortisol and restores the cognitive resources drained by screens.',
-      sub: 'The brain evolved for the wild, not the web.'
-    },
-    creation: {
-      color: 'bg-violet-500/20',
-      icon: <Sparkles />,
-      label: 'Creative Flow',
-      detail: 'Expression is the antidote to consumption. Reclaim your agency through the act of making.',
-      sub: 'From a passive node to an active source.'
-    },
-  };
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.15], [1, 0.95]);
 
   return (
-    <div ref={containerRef} className={`min-h-screen relative overflow-hidden transition-colors duration-1000 ${mindParalysisActive ? 'bg-black' : 'bg-[#050505]'}`}>
+    <div ref={containerRef} className="min-h-screen bg-black relative overflow-hidden">
 
-      {/* Dynamic Background Theme */}
-      <AnimatePresence>
-        {hoveredCard && themes[hoveredCard] && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={`fixed inset-0 z-0 pointer-events-none ${themes[hoveredCard].color} blur-[150px] transition-colors`}
-          />
-        )}
-      </AnimatePresence>
+      {/* Ambient Background */}
+      <div className="fixed inset-0 bg-gradient-to-b from-black via-slate-950 to-black pointer-events-none" />
+      <FloatingParticles />
 
-      {/* Global Distortion Overlay */}
-      <AnimatePresence>
-        {mindParalysisActive && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 pointer-events-none mix-blend-overlay opacity-30 bg-white/5"
-            style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")',
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <div className={`relative z-10 transition-all duration-1000 ${mindParalysisActive ? 'scale-95 blur-md brightness-50' : ''}`}>
+      <div className="relative z-10">
 
         {/* Hero Section */}
         <section className="h-screen flex flex-col items-center justify-center px-6 relative">
-          <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="text-center">
+          <motion.div style={{ opacity: heroOpacity, scale: heroScale }} className="text-center max-w-5xl">
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-sky-400 font-bold uppercase text-xs tracking-[0.5em] mb-8"
+              transition={{ duration: 1 }}
+              className="mb-8"
             >
-              The Neural Experience
+              <span className="text-sky-400 font-bold uppercase text-xs tracking-[0.5em]">
+                A Manifesto on Consciousness
+              </span>
             </motion.div>
 
-            <h1 className="text-[12vw] font-display font-bold text-white leading-none tracking-tighter select-none mb-12">
+            <motion.h1
+              className="text-[15vw] md:text-[12vw] font-display font-bold text-white leading-none mb-12"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.2, delay: 0.2 }}
+            >
               <motion.span
                 animate={{
-                  opacity: [1, 0.8, 1],
-                  scale: [1, 1.05, 1],
-                  filter: ["blur(0px)", "blur(2px)", "blur(0px)"]
+                  opacity: [1, 0.7, 1],
+                  textShadow: [
+                    "0 0 20px rgba(56, 189, 248, 0.3)",
+                    "0 0 40px rgba(56, 189, 248, 0.5)",
+                    "0 0 20px rgba(56, 189, 248, 0.3)"
+                  ]
                 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
                 ALIVE
               </motion.span>
-            </h1>
+            </motion.h1>
 
-            <div className="max-w-2xl mx-auto space-y-6">
-              <p className="text-slate-500 text-xl md:text-2xl leading-relaxed italic">
-                "Intelligence is a <span className="text-white">biological act</span>, not a computational result."
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4 }}
+              className="space-y-6"
+            >
+              <p className="text-2xl md:text-4xl text-slate-300 italic font-light leading-relaxed">
+                "The mind is <span className="text-white font-medium">alive</span>. <br className="hidden md:block" />
+                Watch it like a display. <br className="hidden md:block" />
+                Let thoughts pass."
               </p>
-              <div className="w-12 h-[1px] bg-sky-400/20 mx-auto" />
-              <p className="text-slate-400 text-sm uppercase tracking-widest leading-loose max-w-lg mx-auto">
-                We are witnessing the rise of <span className="text-white">Digital Amnesia</span>. By outsourcing our memory, we surrender the foundation of our intuition.
-              </p>
-            </div>
+              <div className="w-16 h-[2px] bg-gradient-to-r from-transparent via-sky-400 to-transparent mx-auto" />
+            </motion.div>
           </motion.div>
 
           <motion.div
-            animate={{ opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 text-[10px] uppercase font-bold tracking-[0.4em] text-slate-600"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute bottom-12 text-slate-600 text-xs uppercase tracking-[0.4em] font-bold"
           >
-            Descend to Reality
+            Scroll to Explore
           </motion.div>
         </section>
 
-        <div className="max-w-7xl mx-auto px-6 pb-40 space-y-48">
+        <div className="max-w-7xl mx-auto px-6 pb-32 space-y-48">
 
-          {/* Detailed Observations */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+          {/* Dimensional Thinking */}
+          <Section
+            icon={<Brain />}
+            title="Dimensional Thinking"
+            subtitle="Beyond Linear Perception"
+          >
+            <div className="grid md:grid-cols-2 gap-12">
+              <ThoughtDimension
+                dimension="2D"
+                description="The world communicates in two dimensions: text and emotion. Most adults think linearly, constrained by language."
+                color="from-slate-500 to-slate-700"
+              />
+              <ThoughtDimension
+                dimension="3D"
+                description="Children think beyond three dimensions—time, emotion, and abstract connection. This is why they struggle to express themselves in our limited framework."
+                color="from-sky-500 to-violet-500"
+                highlighted
+              />
+            </div>
+            <ManifestoQuote>
+              "A thought has emotion. It has text. It has time. The dimension of thought is not linear."
+            </ManifestoQuote>
+          </Section>
+
+          {/* Observation & Perception */}
+          <Section
+            icon={<Eye />}
+            title="The Lost Art of Observation"
+            subtitle="We have stopped watching"
+          >
+            <div className="space-y-8">
+              <ObservationCard
+                title="Intuition is Real"
+                description="Sometimes you look at someone and instantly know they are lying. Where does that come from? Intuition. Just like our ancestors traveling without vehicles—how did they know where to go? Intuition."
+                icon={<Compass />}
+              />
+              <ObservationCard
+                title="The Environment Shapes Us"
+                description="If you place a child in an environment filled with violence, weapons, and war, and meet them five years later, you'll find that reflected in their behavior. Intelligence is absorption."
+                icon={<Users />}
+              />
+              <ObservationCard
+                title="Perception vs Reality"
+                description="A person kills someone, yet the same killer cries and portrays sorrow, claiming innocence. That becomes the reality they want you to see. But is that the truth?"
+                icon={<AlertCircle />}
+              />
+            </div>
+          </Section>
+
+          {/* Digital Amnesia */}
+          <Section
+            icon={<Zap />}
+            title="Digital Amnesia"
+            subtitle="The Cloud is Not Your Mind"
+            warning
+          >
+            <DigitalAmnesiaWarning />
+            <div className="grid md:grid-cols-2 gap-8 mt-12">
+              <InfoCard
+                title="External Memory Trap"
+                content="When you depend on search engines and digital assistants to store knowledge, this weakens the brain's own ability to recall information independently."
+              />
+              <InfoCard
+                title="The Coming Data Collapse"
+                content="One day, there will be no internet. It will happen suddenly. All information, data, everything will be lost. Then something will appear that can restore it—but in limited quantity, at an immense cost."
+              />
+            </div>
+            <ManifestoQuote>
+              "What you see on your laptop, phone, social media—that becomes your intelligence. Without observation and perception, you merely record information and become mechanical—like AI."
+            </ManifestoQuote>
+          </Section>
+
+          {/* Dual-Process Thinking */}
+          <Section
+            icon={<Lightbulb />}
+            title="Two Systems of Thought"
+            subtitle="Intuition and Deliberation"
+          >
+            <DualSystemViz />
+            <div className="mt-12 space-y-6 text-slate-400 text-lg leading-relaxed">
+              <p>
+                Psychology distinguishes between two systems of thought: <strong className="text-white">System 1</strong>, fast, instinctive, and emotional, and <strong className="text-white">System 2</strong>, slow, analytical, and deliberate.
+              </p>
+              <p>
+                This dual-process theory reflects our natural cognitive architecture: we generate spontaneous insights (intuition) and deliberate reasoning in parallel. This is what makes human cognition rich and autonomous.
+              </p>
+            </div>
+          </Section>
+
+          {/* The Learning Paradox */}
+          <Section
+            icon={<BookOpen />}
+            title="The Learning Paradox"
+            subtitle="Teachers vs Mentors"
+          >
+            <div className="space-y-8">
+              <div className="glass rounded-3xl p-12 border border-white/5">
+                <h4 className="text-2xl font-bold text-white mb-6">The Problem with Teaching</h4>
+                <div className="space-y-4 text-slate-400 leading-relaxed">
+                  <p>
+                    Teaching has been converted into teachers, and teachers bias learning. When something is written—this is success, this is failure, this is the goal—it limits your possibilities. A written goal becomes a cage.
+                  </p>
+                  <p>
+                    There should be mentors—gurus—whom you approach to clarify doubts or connect missing dots. But there should be no teachers in the conventional sense.
+                  </p>
+                  <p className="text-white italic">
+                    "Learning should be your own. Once you learn something, there should be no third-party involvement in learning."
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-6">
+                <ConceptCard
+                  title="Self-Generated Thoughts"
+                  description="Random thoughts that come to you naturally are never forgotten. They have emotion, context, and personal meaning."
+                  color="emerald"
+                />
+                <ConceptCard
+                  title="External Information"
+                  description="Information built by others and presented like a well-served dish. You often forget it, especially when explaining to others."
+                  color="slate"
+                />
+                <ConceptCard
+                  title="True Learning"
+                  description="When you discuss something, it should remain in the mind. No paper. No external storage. Just pure understanding."
+                  color="violet"
+                />
+              </div>
+            </div>
+          </Section>
+
+          {/* Speed vs Depth */}
+          <Section
+            icon={<Clock />}
+            title="The Hurry Epidemic"
+            subtitle="Why don't we stop?"
+          >
+            <div className="glass rounded-3xl p-12 border border-white/5 space-y-8">
+              <div className="space-y-6 text-slate-400 text-lg leading-relaxed">
+                <p>
+                  I've spoken to hundreds of people. Ninety-eight out of a hundred <strong className="text-white">hate thinking</strong>. They don't pause for even a second. They speak instantly. While speaking, they frame answers—not thoughtful answers, but reactive ones.
+                </p>
+                <p>
+                  Why do people have shorter lives today? Because they're always in a hurry. I've seen people not stop for someone trying to cross the road without a zebra crossing.
+                </p>
+                <p className="text-white italic text-xl">
+                  "Let an answer be silent if needed. Let it be incomplete. Let it be real."
+                </p>
+              </div>
+
+              <div className="border-t border-white/10 pt-8">
+                <h4 className="text-xl font-bold text-white mb-4">The Observation Gap</h4>
+                <p className="text-slate-400 leading-relaxed">
+                  Why don't we explore why this happens? Because observation takes time. Without observation and perception, you merely record information and become mechanical.
+                </p>
+              </div>
+            </div>
+          </Section>
+
+          {/* Final Manifesto */}
+          <Section
+            icon={<Sparkles />}
+            title="The Awakening"
+            subtitle="Reclaim Your Mind"
+          >
             <div className="space-y-12">
-              <div className="space-y-4">
-                <div className="w-8 h-8 rounded-lg bg-sky-400/10 flex items-center justify-center text-sky-400">
-                  <Zap size={20} />
-                </div>
-                <h2 className="text-5xl font-display font-bold text-white leading-tight">
-                  The <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-violet-400">Neuro-Synthetic</span> Divide
-                </h2>
-              </div>
-
-              <div className="space-y-8 text-slate-400 text-lg border-l border-white/10 pl-10">
-                <p>
-                  <strong className="text-white block mb-2">Cognitive Offloading</strong>
-                  When we use search engines for every minor fact, we bypass the hippocampal encoding process. Information that is never "found" by the mind is never "known" by the self.
+              <div className="text-center space-y-6">
+                <p className="text-3xl md:text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-violet-400 to-rose-400 leading-tight">
+                  Explore your body. <br />
+                  Explore your mind. <br />
+                  Enhance your own thoughts.
                 </p>
-                <p>
-                  <strong className="text-white block mb-2">Predictive Processing</strong>
-                  AI models are probability engines. Human intuition is different—it is the result of embodied experience, emotional weight, and biological necessity.
-                </p>
-                <p>
-                  <strong className="text-white block mb-2">The Erosion of Boredom</strong>
-                  Creativity requires the "Default Mode Network"—a brain state active only during idle reflection. Constant stimulation kills the spark of original thought.
-                </p>
-              </div>
-            </div>
-
-            <div className="relative aspect-square glass rounded-[4rem] border-white/5 overflow-hidden flex items-center justify-center p-12 group">
-              <ThreeBrain className="w-full h-full transform group-hover:scale-110 transition-transform duration-1000" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-              <div className="absolute bottom-12 text-center w-full px-8 pointer-events-none">
-                <p className="text-[10px] text-sky-300 font-bold uppercase tracking-widest mb-2">Neural Topology Visualization</p>
-                <p className="text-xs text-slate-500 italic">"The map is not the territory. The data is not the mind."</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Simulation Section */}
-          <section className="relative">
-            <div className="glass rounded-[4rem] p-16 border-white/5 relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 p-20 opacity-5 pointer-events-none -rotate-12 translate-x-20 -translate-y-20">
-                <Brain size={400} />
+                <div className="w-24 h-[2px] bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto" />
               </div>
 
-              <div className="max-w-2xl relative z-10">
-                <div className="flex items-center gap-4 text-red-500 text-xs font-bold uppercase tracking-[0.3em] mb-6">
-                  <AlertTriangle size={16} /> Protocol Alpha: Cognitive Stress Test
-                </div>
-                <h3 className="text-4xl font-display font-bold text-white mb-8">The Paralysis Trap</h3>
-                <p className="text-slate-400 text-lg mb-12 leading-relaxed">
-                  Experience the mental fatigue caused by hyper-stimulation. As visual noise increases, the brain's ability to maintain focus and structural integrity collapses into "Mind Paralysis."
-                </p>
-
-                <div className="grid grid-cols-1 gap-10 mb-12">
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Cognitive Clarity</span>
-                      <span className="text-2xl font-display font-bold text-white">{Math.round(focusLevel)}%</span>
-                    </div>
-                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-emerald-400"
-                        animate={{ width: `${focusLevel}%` }}
-                        transition={{ type: "spring", stiffness: 50 }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest">Dopamine Noise</span>
-                      <span className="text-2xl font-display font-bold text-white">{Math.round(distractions)}%</span>
-                    </div>
-                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-red-500 shadow-[0_0_20px_rgba(239,68,68,0.5)]"
-                        animate={{ width: `${distractions}%` }}
-                        transition={{ type: "spring", stiffness: 50 }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={triggerMindParalysis}
-                  disabled={mindParalysisActive}
-                  className={`group px-12 py-6 rounded-full font-bold uppercase tracking-widest text-xs transition-all relative overflow-hidden ${mindParalysisActive ? 'bg-red-500/10 text-red-500' : 'bg-white text-black hover:scale-105 active:scale-95'
-                    }`}
-                >
-                  <span className="relative z-10">{mindParalysisActive ? 'Protocol Active...' : 'Initiate Paralysis Sequence'}</span>
-                  {!mindParalysisActive && (
-                    <div className="absolute inset-0 bg-sky-400 scale-x-0 group-hover:scale-x-100 transition-transform origin-left opacity-10" />
-                  )}
-                </button>
+              <div className="grid md:grid-cols-2 gap-8">
+                <FinalCard
+                  title="Don't Replace with Technology"
+                  content="Right now, I'm recording this using a microphone. I had a thought and I captured it. I didn't ask AI to give me a thought. That's the difference."
+                />
+                <FinalCard
+                  title="Beyond Money"
+                  content="Money is not the goal. It's a trap given to you. Beyond money, there is so much you are not exploring."
+                />
               </div>
+
+              <ManifestoQuote large>
+                "People will keep forcing their motives onto you. It's time to watch your mind like a display. Let thoughts pass. The mind is alive."
+              </ManifestoQuote>
             </div>
-          </section>
-
-          {/* Immersive Vertical Cards with Full Screen Shift */}
-          <section className="space-y-16">
-            <div className="text-center space-y-6">
-              <div className="w-12 h-12 rounded-2xl bg-violet-400/10 flex items-center justify-center text-violet-400 mx-auto">
-                <Heart size={24} />
-              </div>
-              <h3 className="text-5xl font-display font-bold text-white tracking-tight">Beyond the Screen</h3>
-              <p className="text-slate-500 text-lg max-w-xl mx-auto italic">"True wealth is not in your wallet, but in the depth of your experiences."</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[500px]">
-              {Object.entries(themes).map(([id, theme]) => (
-                <motion.div
-                  key={id}
-                  onMouseEnter={() => setHoveredCard(id)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  className={`relative rounded-[3rem] overflow-hidden cursor-pointer transition-all duration-700 ${hoveredCard === id ? 'md:col-span-2' : 'col-span-1'
-                    } border border-white/5 group`}
-                >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${theme.color} opacity-20 group-hover:opacity-40 transition-opacity`} />
-                  <div className="absolute inset-0 backdrop-blur-xl group-hover:backdrop-blur-none transition-all duration-1000" />
-
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center space-y-6">
-                    <div className="w-16 h-16 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center text-white mb-4 group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500">
-                      {React.cloneElement(theme.icon as any, { size: 32 })}
-                    </div>
-                    <h4 className="text-2xl font-display font-bold text-white group-hover:tracking-widest transition-all duration-500">{theme.label}</h4>
-
-                    <AnimatePresence>
-                      {hoveredCard === id && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          className="space-y-4"
-                        >
-                          <p className="text-slate-200 text-sm leading-relaxed font-medium">{theme.detail}</p>
-                          <div className="w-8 h-[1px] bg-white/20 mx-auto" />
-                          <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">{theme.sub}</p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Theme-specific visual elements */}
-                  {id === 'nature' && <NatureAccents active={hoveredCard === id} />}
-                  {id === 'connection' && <ConnectionAccents active={hoveredCard === id} />}
-                </motion.div>
-              ))}
-            </div>
-          </section>
-
-          {/* Footer Quote */}
-          <section className="text-center pt-20 border-t border-white/5">
-            <p className="text-3xl md:text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-200 via-slate-500 to-slate-200 italic opacity-50 hover:opacity-100 transition-opacity duration-1000">
-              "Real life happens in the gaps <br className="hidden md:block" /> between the pixels."
-            </p>
-          </section>
+          </Section>
 
         </div>
       </div>
@@ -311,41 +280,232 @@ const FeelAliveView: React.FC = () => {
   );
 };
 
-const NatureAccents: React.FC<{ active: boolean }> = ({ active }) => (
-  <AnimatePresence>
-    {active && (
+// Component Definitions
+
+const FloatingParticles: React.FC = () => (
+  <div className="fixed inset-0 pointer-events-none">
+    {[...Array(20)].map((_, i) => (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 pointer-events-none"
-      >
-        <div className="absolute top-10 left-10 text-emerald-500/20"><Leaf size={100} /></div>
-        <div className="absolute bottom-10 right-10 text-emerald-500/20 rotate-180"><Leaf size={120} /></div>
-      </motion.div>
-    )}
-  </AnimatePresence>
+        key={i}
+        className="absolute w-1 h-1 bg-sky-400/20 rounded-full"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+        }}
+        animate={{
+          y: [0, -100, 0],
+          opacity: [0, 1, 0],
+        }}
+        transition={{
+          duration: 3 + Math.random() * 2,
+          repeat: Infinity,
+          delay: Math.random() * 2,
+        }}
+      />
+    ))}
+  </div>
 );
 
-const ConnectionAccents: React.FC<{ active: boolean }> = ({ active }) => (
-  <AnimatePresence>
-    {active && (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="absolute inset-0 pointer-events-none"
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-64 h-64 rounded-full border border-rose-500/50"
-          />
+const Section: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+  warning?: boolean;
+}> = ({ icon, title, subtitle, children, warning }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <motion.section
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.8 }}
+      className="space-y-12"
+    >
+      <div className="text-center space-y-6">
+        <div className={`w-16 h-16 rounded-2xl ${warning ? 'bg-red-500/10 text-red-400' : 'bg-sky-400/10 text-sky-400'} flex items-center justify-center mx-auto`}>
+          {React.cloneElement(icon as any, { size: 32 })}
         </div>
-      </motion.div>
-    )}
-  </AnimatePresence>
+        <div>
+          <h2 className="text-5xl md:text-6xl font-display font-bold text-white mb-3">
+            {title}
+          </h2>
+          <p className="text-slate-500 text-lg italic">{subtitle}</p>
+        </div>
+      </div>
+      {children}
+    </motion.section>
+  );
+};
+
+const ThoughtDimension: React.FC<{
+  dimension: string;
+  description: string;
+  color: string;
+  highlighted?: boolean;
+}> = ({ dimension, description, color, highlighted }) => (
+  <motion.div
+    whileHover={{ scale: 1.02 }}
+    className={`glass rounded-3xl p-10 border ${highlighted ? 'border-sky-400/30' : 'border-white/5'} relative overflow-hidden group`}
+  >
+    <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5 group-hover:opacity-10 transition-opacity`} />
+    <div className="relative z-10">
+      <div className="text-6xl font-display font-bold text-white mb-6">{dimension}</div>
+      <p className="text-slate-400 leading-relaxed">{description}</p>
+    </div>
+  </motion.div>
+);
+
+const ManifestoQuote: React.FC<{ children: React.ReactNode; large?: boolean }> = ({ children, large }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    whileInView={{ opacity: 1 }}
+    viewport={{ once: true }}
+    className={`text-center ${large ? 'py-16' : 'py-12'}`}
+  >
+    <p className={`${large ? 'text-3xl md:text-4xl' : 'text-xl md:text-2xl'} font-light italic text-slate-300 max-w-4xl mx-auto leading-relaxed`}>
+      {children}
+    </p>
+  </motion.div>
+);
+
+const ObservationCard: React.FC<{
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}> = ({ title, description, icon }) => (
+  <motion.div
+    whileHover={{ x: 10 }}
+    className="glass rounded-2xl p-8 border border-white/5 flex gap-6 group"
+  >
+    <div className="w-12 h-12 rounded-xl bg-sky-400/10 flex items-center justify-center text-sky-400 flex-shrink-0 group-hover:bg-sky-400/20 transition-colors">
+      {React.cloneElement(icon as any, { size: 24 })}
+    </div>
+    <div>
+      <h4 className="text-xl font-bold text-white mb-3">{title}</h4>
+      <p className="text-slate-400 leading-relaxed">{description}</p>
+    </div>
+  </motion.div>
+);
+
+const DigitalAmnesiaWarning: React.FC = () => {
+  const [glitch, setGlitch] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGlitch(true);
+      setTimeout(() => setGlitch(false), 200);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      className={`glass rounded-3xl p-12 border border-red-500/20 relative overflow-hidden ${glitch ? 'animate-pulse' : ''}`}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent" />
+      <div className="relative z-10 text-center space-y-6">
+        <div className="text-red-400 text-sm font-bold uppercase tracking-[0.3em]">Warning</div>
+        <h3 className="text-3xl md:text-4xl font-display font-bold text-white">
+          The information you consume <br className="hidden md:block" />
+          <span className="text-red-400">becomes</span> your intelligence
+        </h3>
+        <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+          Artificial intelligence is not evolving naturally; it is fed artificially. Call it AI, call it anything—it's shaped by artificial sources.
+        </p>
+      </div>
+    </motion.div>
+  );
+};
+
+const InfoCard: React.FC<{ title: string; content: string }> = ({ title, content }) => (
+  <div className="glass rounded-2xl p-8 border border-white/5">
+    <h4 className="text-xl font-bold text-white mb-4">{title}</h4>
+    <p className="text-slate-400 leading-relaxed">{content}</p>
+  </div>
+);
+
+const DualSystemViz: React.FC = () => (
+  <div className="grid md:grid-cols-2 gap-8">
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="glass rounded-3xl p-10 border border-white/5 relative overflow-hidden group"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="relative z-10">
+        <div className="text-5xl font-display font-bold text-yellow-400 mb-4">System 1</div>
+        <div className="space-y-3 text-slate-400">
+          <div className="flex items-center gap-3">
+            <Zap size={20} className="text-yellow-400" />
+            <span>Fast & Instinctive</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Wind size={20} className="text-yellow-400" />
+            <span>Emotional & Automatic</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Sparkles size={20} className="text-yellow-400" />
+            <span>Intuitive Insights</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="glass rounded-3xl p-10 border border-white/5 relative overflow-hidden group"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="relative z-10">
+        <div className="text-5xl font-display font-bold text-blue-400 mb-4">System 2</div>
+        <div className="space-y-3 text-slate-400">
+          <div className="flex items-center gap-3">
+            <Brain size={20} className="text-blue-400" />
+            <span>Slow & Analytical</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Droplets size={20} className="text-blue-400" />
+            <span>Deliberate & Effortful</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Compass size={20} className="text-blue-400" />
+            <span>Logical Reasoning</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  </div>
+);
+
+const ConceptCard: React.FC<{
+  title: string;
+  description: string;
+  color: string;
+}> = ({ title, description, color }) => {
+  const colors = {
+    emerald: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20',
+    slate: 'from-slate-500/10 to-slate-500/5 border-slate-500/20',
+    violet: 'from-violet-500/10 to-violet-500/5 border-violet-500/20',
+  };
+
+  return (
+    <div className={`glass rounded-2xl p-8 border bg-gradient-to-br ${colors[color as keyof typeof colors]}`}>
+      <h4 className="text-lg font-bold text-white mb-3">{title}</h4>
+      <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
+    </div>
+  );
+};
+
+const FinalCard: React.FC<{ title: string; content: string }> = ({ title, content }) => (
+  <motion.div
+    whileHover={{ y: -5 }}
+    className="glass rounded-2xl p-8 border border-white/5"
+  >
+    <h4 className="text-xl font-bold text-white mb-4">{title}</h4>
+    <p className="text-slate-400 leading-relaxed">{content}</p>
+  </motion.div>
 );
 
 export default FeelAliveView;
