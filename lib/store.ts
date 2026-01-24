@@ -38,6 +38,7 @@ interface AppState {
     frozenIps: string[];
     showcaseItems: ShowcaseItem[];
     resources: Resource[];
+    music: MusicItem[];
 
     // Actions
     fetchData: () => Promise<void>;
@@ -57,6 +58,18 @@ interface AppState {
     addResource: (resource: Omit<Resource, 'id' | 'downloads' | 'uploadedAt'>) => void;
     removeResource: (id: string) => void;
     incrementDownloadCount: (id: string) => void;
+
+    addMusic: (music: Omit<MusicItem, 'id' | 'timestamp'>) => Promise<void>;
+    removeMusic: (id: string) => Promise<void>;
+}
+
+export interface MusicItem {
+    id: string;
+    title: string;
+    artist: string;
+    url: string;
+    duration: number;
+    timestamp: number;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -76,7 +89,8 @@ export const useStore = create<AppState>((set, get) => ({
                     messages: data.messages || [],
                     resources: data.resources || [],
                     showcaseItems: data.showcaseItems || [],
-                    frozenIps: data.frozenIps || []
+                    frozenIps: data.frozenIps || [],
+                    music: data.music || []
                 });
             }
         } catch (error) {
@@ -239,4 +253,29 @@ export const useStore = create<AppState>((set, get) => ({
             body: JSON.stringify({ action: 'incrementDownloadCount', payload: { id } })
         });
     },
+
+    music: [],
+    addMusic: async (data) => {
+        const tempId = 'temp-' + Date.now();
+        set((state) => ({
+            music: [{ ...data, id: tempId, timestamp: Date.now() }, ...state.music]
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addMusic', payload: data })
+        });
+        get().fetchData();
+    },
+
+    removeMusic: async (id) => {
+        set((state) => ({
+            music: state.music.filter(m => m.id !== id)
+        }));
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'removeMusic', payload: { id } })
+        });
+    }
 }));

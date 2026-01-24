@@ -19,8 +19,8 @@ import {
     X,
     ExternalLink
 } from 'lucide-react';
-import { useStore, Visit, VoiceMessage, ShowcaseItem, Resource } from '../lib/store';
-import { Upload, Trash2, ArrowUp, ArrowDown, Plus, HardDrive, Info } from 'lucide-react';
+import { useStore, Visit, VoiceMessage, ShowcaseItem, Resource, MusicItem } from '../lib/store';
+import { Upload, Trash2, ArrowUp, ArrowDown, Plus, HardDrive, Info, Music } from 'lucide-react';
 
 interface AdminDashboardProps {
     onClose?: () => void;
@@ -29,7 +29,7 @@ interface AdminDashboardProps {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase' | 'resources'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'visitors' | 'comms' | 'showcase' | 'resources' | 'music'>('overview');
     const [loginError, setLoginError] = useState(false);
     const [dashboardData, setDashboardData] = useState({
         visits: [] as Visit[],
@@ -37,10 +37,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         frozenIps: [] as string[],
         showcaseItems: [] as ShowcaseItem[],
         resources: [] as Resource[],
+        music: [] as MusicItem[],
     });
 
     // Store data
-    const { visits, messages, frozenIps, freezeIp, unfreezeIp, showcaseItems, resources, toggleVisitStatus } = useStore();
+    const { visits, messages, frozenIps, freezeIp, unfreezeIp, showcaseItems, resources, music, toggleVisitStatus } = useStore();
 
     // Fetch data from centralized store (Server)
     useEffect(() => {
@@ -69,6 +70,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     frozenIps: state.frozenIps,
                     showcaseItems: state.showcaseItems,
                     resources: state.resources,
+                    music: state.music,
                 });
             });
             return unsubscribe;
@@ -167,7 +169,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
                     { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
                     { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' },
-                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' }
+                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' },
+                    { id: 'music', icon: <Music size={18} />, label: 'Music' }
                 ].map(item => (
                     <button
                         key={item.id}
@@ -196,7 +199,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     { id: 'visitors', icon: <Users size={18} />, label: 'Audits' },
                     { id: 'comms', icon: <Mic2 size={18} />, label: 'Comms' },
                     { id: 'showcase', icon: <Layout size={18} />, label: 'Showcase' },
-                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' }
+                    { id: 'resources', icon: <HardDrive size={18} />, label: 'Resources' },
+                    { id: 'music', icon: <Music size={18} />, label: 'Music' }
                 ].map(item => (
                     <button
                         key={item.id}
@@ -529,6 +533,99 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                                 className="p-3 glass rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
                                             >
                                                 <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'music' && (
+                        <motion.div
+                            key="music"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="space-y-12"
+                        >
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-display font-bold text-white">Music Room Records</h3>
+                                    <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mt-1">Poetic Soundscapes // Persistent Audio Storage</p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="glass px-6 py-3 rounded-xl border-white/5 flex items-center gap-3">
+                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Library Size</div>
+                                        <div className="text-sky-300 font-mono text-xs">{dashboardData.music.length} Tracks</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass p-10 rounded-[3rem] border-white/5 border-dashed border-2 flex flex-col items-center justify-center group hover:bg-white/[0.02] transition-colors cursor-pointer relative overflow-hidden">
+                                <input
+                                    type="file"
+                                    accept="audio/*"
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+
+                                        const reader = new FileReader();
+                                        reader.onload = (event) => {
+                                            const audio = new Audio();
+                                            audio.src = event.target?.result as string;
+                                            audio.onloadedmetadata = () => {
+                                                useStore.getState().addMusic({
+                                                    title: file.name.replace(/\.[^/.]+$/, ""),
+                                                    artist: "Aman",
+                                                    url: event.target?.result as string,
+                                                    duration: audio.duration
+                                                });
+                                            };
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }}
+                                />
+                                <div className="w-20 h-20 bg-sky-400/10 rounded-full flex items-center justify-center text-sky-400 mb-6 group-hover:scale-110 transition-transform">
+                                    <Plus size={32} />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-white font-bold uppercase tracking-widest text-xs mb-2">Upload New Soundscape</p>
+                                    <p className="text-slate-500 text-[9px] uppercase font-medium tracking-widest">WAV / MP3 / AAC Supported</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {dashboardData.music.map((track) => (
+                                    <div key={track.id} className="glass p-8 rounded-[2rem] border-white/5 flex items-center justify-between hover:border-sky-400/20 transition-all group">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-400">
+                                                <Music size={24} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-lg font-display font-bold text-white mb-1">{track.title}</h4>
+                                                <div className="flex items-center gap-4 text-[9px] text-slate-500 font-bold uppercase tracking-widest font-mono">
+                                                    <span>{Math.floor(track.duration / 60)}:{(track.duration % 60).toFixed(0).padStart(2, '0')}</span>
+                                                    <span className="w-1 h-1 rounded-full bg-slate-700" />
+                                                    <span>{track.artist}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={() => {
+                                                    const audio = new Audio(track.url);
+                                                    audio.play();
+                                                }}
+                                                className="p-3 glass rounded-xl text-sky-400 hover:bg-sky-400 hover:text-black transition-all"
+                                            >
+                                                <Play size={16} fill="currentColor" />
+                                            </button>
+                                            <button
+                                                onClick={() => useStore.getState().removeMusic(track.id)}
+                                                className="p-3 glass rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </div>

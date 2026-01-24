@@ -33,7 +33,7 @@ export async function createTables() {
         uploaded_at BIGINT
       );
     `;
-    
+
     await sql`
        CREATE TABLE IF NOT EXISTS showcase_items (
         id SERIAL PRIMARY KEY,
@@ -42,10 +42,21 @@ export async function createTables() {
         sort_order INT
        );
     `;
-    
+
     await sql`
        CREATE TABLE IF NOT EXISTS frozen_ips (
         ip VARCHAR(255) PRIMARY KEY
+       );
+    `;
+
+    await sql`
+       CREATE TABLE IF NOT EXISTS music (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255),
+        artist VARCHAR(255),
+        url TEXT,
+        duration FLOAT,
+        timestamp BIGINT
        );
     `;
 
