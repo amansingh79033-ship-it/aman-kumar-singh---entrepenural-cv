@@ -128,6 +128,12 @@ export const useStore = create<AppState>((set, get) => ({
             timestamp: Date.now(),
         };
         set((state) => ({ messages: [message, ...state.messages] }));
+
+        await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'addMessage', payload: data })
+        });
     },
 
     freezeIp: async (ip) => {

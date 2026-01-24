@@ -20,7 +20,8 @@ import {
     ExternalLink
 } from 'lucide-react';
 import { useStore, Visit, VoiceMessage, ShowcaseItem, Resource, MusicItem } from '../lib/store';
-import { Upload, Trash2, ArrowUp, ArrowDown, Plus, HardDrive, Info, Music } from 'lucide-react';
+import { Upload, Trash2, ArrowUp, ArrowDown, Plus, HardDrive, Info, Music, Shield, Database, Loader2 } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
 
 interface AdminDashboardProps {
     onClose?: () => void;
@@ -542,96 +543,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     )}
 
                     {activeTab === 'music' && (
-                        <motion.div
-                            key="music"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="space-y-12"
-                        >
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="text-2xl font-display font-bold text-white">Music Room Records</h3>
-                                    <p className="text-slate-500 text-xs uppercase tracking-widest font-bold mt-1">Poetic Soundscapes // Persistent Audio Storage</p>
-                                </div>
-                                <div className="flex gap-4">
-                                    <div className="glass px-6 py-3 rounded-xl border-white/5 flex items-center gap-3">
-                                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Library Size</div>
-                                        <div className="text-sky-300 font-mono text-xs">{dashboardData.music.length} Tracks</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="glass p-10 rounded-[3rem] border-white/5 border-dashed border-2 flex flex-col items-center justify-center group hover:bg-white/[0.02] transition-colors cursor-pointer relative overflow-hidden">
-                                <input
-                                    type="file"
-                                    accept="audio/*"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file) return;
-
-                                        const reader = new FileReader();
-                                        reader.onload = (event) => {
-                                            const audio = new Audio();
-                                            audio.src = event.target?.result as string;
-                                            audio.onloadedmetadata = () => {
-                                                useStore.getState().addMusic({
-                                                    title: file.name.replace(/\.[^/.]+$/, ""),
-                                                    artist: "Aman",
-                                                    url: event.target?.result as string,
-                                                    duration: audio.duration
-                                                });
-                                            };
-                                        };
-                                        reader.readAsDataURL(file);
-                                    }}
-                                />
-                                <div className="w-20 h-20 bg-sky-400/10 rounded-full flex items-center justify-center text-sky-400 mb-6 group-hover:scale-110 transition-transform">
-                                    <Plus size={32} />
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-white font-bold uppercase tracking-widest text-xs mb-2">Upload New Soundscape</p>
-                                    <p className="text-slate-500 text-[9px] uppercase font-medium tracking-widest">WAV / MP3 / AAC Supported</p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {dashboardData.music.map((track) => (
-                                    <div key={track.id} className="glass p-8 rounded-[2rem] border-white/5 flex items-center justify-between hover:border-sky-400/20 transition-all group">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-14 h-14 bg-sky-400/10 rounded-2xl flex items-center justify-center text-sky-400">
-                                                <Music size={24} />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-lg font-display font-bold text-white mb-1">{track.title}</h4>
-                                                <div className="flex items-center gap-4 text-[9px] text-slate-500 font-bold uppercase tracking-widest font-mono">
-                                                    <span>{Math.floor(track.duration / 60)}:{(track.duration % 60).toFixed(0).padStart(2, '0')}</span>
-                                                    <span className="w-1 h-1 rounded-full bg-slate-700" />
-                                                    <span>{track.artist}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <button
-                                                onClick={() => {
-                                                    const audio = new Audio(track.url);
-                                                    audio.play();
-                                                }}
-                                                className="p-3 glass rounded-xl text-sky-400 hover:bg-sky-400 hover:text-black transition-all"
-                                            >
-                                                <Play size={16} fill="currentColor" />
-                                            </button>
-                                            <button
-                                                onClick={() => useStore.getState().removeMusic(track.id)}
-                                                className="p-3 glass rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
+                        <MusicManagementView music={dashboardData.music} />
                     )}
 
                 </AnimatePresence>
@@ -737,6 +649,146 @@ const MediaCard: React.FC<{ id: string, title: string, image: string, index: num
                 Real-time Sync Active
             </p>
         </div>
+    );
+};
+
+const MusicManagementView: React.FC<{ music: MusicItem[] }> = ({ music }) => {
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        setUploadProgress(10);
+
+        try {
+            // Initiate Vercel Blob Upload
+            const newBlob = await upload(file.name, file, {
+                access: 'public',
+                handleUploadUrl: '/api/upload',
+                onUploadProgress: (progressEvent) => {
+                    setUploadProgress(progressEvent.percentage);
+                }
+            });
+
+            // Get duration
+            const audio = new Audio(newBlob.url);
+            audio.onloadedmetadata = () => {
+                useStore.getState().addMusic({
+                    title: file.name.replace(/\.[^/.]+$/, ""),
+                    artist: "Aman",
+                    url: newBlob.url,
+                    duration: audio.duration
+                });
+                setIsUploading(false);
+                setUploadProgress(0);
+            };
+        } catch (error) {
+            console.error('Upload failed:', error);
+            alert('Upload failed. Check console for details.');
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
+    };
+
+    return (
+        <motion.div
+            key="music"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-12"
+        >
+            <div className="flex justify-between items-center">
+                <div>
+                    <h3 className="text-3xl font-display font-bold text-white uppercase tracking-tighter">The 50GB Sonic Foundry</h3>
+                    <p className="text-slate-500 text-[10px] uppercase tracking-[0.3em] font-bold mt-1 flex items-center gap-2">
+                        <Shield size={12} className="text-sky-400" /> Vercel Blob Secured // Unlimited Bandwidth Pipeline
+                    </p>
+                </div>
+                <div className="flex gap-4">
+                    <div className="glass px-6 py-4 rounded-2xl border-white/5 flex items-center gap-4">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Global Capacity</div>
+                        <div className="text-sky-300 font-mono text-sm uppercase">50.0 GB // Tier 3</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="glass p-16 rounded-[4rem] border-white/5 border-dashed border-2 flex flex-col items-center justify-center group hover:bg-sky-400/[0.02] transition-all cursor-pointer relative overflow-hidden">
+                {!isUploading ? (
+                    <>
+                        <input
+                            type="file"
+                            accept="audio/*"
+                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                            onChange={handleUpload}
+                        />
+                        <div className="w-24 h-24 bg-sky-400/10 rounded-full flex items-center justify-center text-sky-400 mb-8 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(56,189,248,0.2)] transition-all">
+                            <Plus size={40} />
+                        </div>
+                        <div className="text-center">
+                            <p className="text-white font-bold uppercase tracking-widest text-sm mb-2">Inject New Soundscape</p>
+                            <p className="text-slate-500 text-[10px] uppercase font-bold tracking-[0.4em]">Multi-Gigabit Upload Pipeline Active</p>
+                        </div>
+                    </>
+                ) : (
+                    <div className="w-full max-w-md text-center">
+                        <div className="mb-8 relative inline-block">
+                            <Loader2 size={48} className="text-sky-400 animate-spin mx-auto" />
+                            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-white font-bold">
+                                {uploadProgress}%
+                            </div>
+                        </div>
+                        <p className="text-white font-bold uppercase tracking-widest text-xs mb-4">Establishing Uplink...</p>
+                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${uploadProgress}%` }}
+                                className="h-full bg-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.5)]"
+                            />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {music.map((track) => (
+                    <div key={track.id} className="glass p-8 rounded-[2.5rem] border-white/5 flex items-center justify-between hover:border-sky-400/20 transition-all group relative overflow-hidden">
+                        <div className="flex items-center gap-6">
+                            <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-slate-500 group-hover:text-sky-400 transition-colors">
+                                <Database size={24} />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-display font-bold text-white mb-1 uppercase tracking-widest">{track.title}</h4>
+                                <div className="flex items-center gap-4 text-[8px] text-slate-500 font-bold uppercase tracking-widest font-mono">
+                                    <span>{Math.floor(track.duration / 60)}:{(track.duration % 60).toFixed(0).padStart(2, '0')}</span>
+                                    <span className="w-1 h-1 rounded-full bg-slate-800" />
+                                    <span>VERCEL BLOB</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => {
+                                    const audio = new Audio(track.url);
+                                    audio.play();
+                                }}
+                                className="p-3 glass rounded-xl text-sky-400 hover:bg-sky-400 hover:text-black transition-all"
+                            >
+                                <Play size={16} fill="currentColor" />
+                            </button>
+                            <button
+                                onClick={() => useStore.getState().removeMusic(track.id)}
+                                className="p-3 glass rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </motion.div>
     );
 };
 

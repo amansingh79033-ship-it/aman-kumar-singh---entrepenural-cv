@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
+    "@vercel/blob": "^2.0.1",
     "@vercel/postgres": "^0.10.0",
     "clsx": "^2.1.1",
     "firebase": "^12.7.0",

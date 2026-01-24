@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic2, User, UserCheck, X, Music, Play, Pause, Headphones, Clock } from 'lucide-react';
+import { Mic2, User, UserCheck, X, Music, Play, Pause, Headphones, Clock, Loader2, Volume2, Database, Zap, Cpu, Activity } from 'lucide-react';
 import { useStore, MusicItem as StoreMusicItem } from '../lib/store';
 
 const PoemCard: React.FC<{
@@ -22,6 +22,22 @@ const PoemCard: React.FC<{
   const [chunkIndex, setChunkIndex] = React.useState(0);
   const currentChunksRef = React.useRef<{ text: string; offset: number }[]>([]);
   const currentGenderRef = React.useRef<'male' | 'female' | 'own'>('male');
+  const [neuralPulse, setNeuralPulse] = React.useState(0);
+
+  React.useEffect(() => {
+    let interval: any;
+    if (isSpeaking) {
+      interval = setInterval(() => {
+        setNeuralPulse(prev => (prev + 1) % 100);
+      }, 50);
+    }
+    return () => {
+      clearInterval(interval);
+      if (isSpeakingRef.current) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [isSpeaking]);
 
 
   const stopSpeaking = () => {
@@ -129,27 +145,30 @@ const PoemCard: React.FC<{
 
     const getVoice = (gender: string) => {
       const allVoices = window.speechSynthesis.getVoices();
+      // Look for premium quality voices first
       const hiVoices = allVoices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
-      const inEnVoices = allVoices.filter(v => v.lang.startsWith('en-IN'));
+      const premiumVoices = hiVoices.filter(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('premium'));
 
       if (gender === 'male') {
-        return hiVoices.find(v => v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('ravi') || v.name.toLowerCase().includes('suresh')) ||
-          inEnVoices.find(v => v.name.toLowerCase().includes('male')) ||
-          allVoices.find(v => v.name.toLowerCase().includes('male')) ||
-          allVoices[0];
+        return premiumVoices.find(v => v.name.toLowerCase().includes('male')) ||
+          hiVoices.find(v => v.name.toLowerCase().includes('male')) ||
+          hiVoices[0] || allVoices[0];
       } else if (gender === 'female') {
-        return hiVoices.find(v => v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('kavya') || v.name.toLowerCase().includes('sangeeta')) ||
-          inEnVoices.find(v => v.name.toLowerCase().includes('female')) ||
-          allVoices.find(v => v.name.toLowerCase().includes('female')) ||
-          allVoices[0];
+        return premiumVoices.find(v => v.name.toLowerCase().includes('female')) ||
+          hiVoices.find(v => v.name.toLowerCase().includes('female')) ||
+          hiVoices[0] || allVoices[0];
       }
-      return allVoices.find(v => v.name.toLowerCase().includes('standard') || v.name.toLowerCase().includes('neutral')) || allVoices[0];
+      return premiumVoices[0] || hiVoices[0] || allVoices[0];
     };
 
     const selectedVoice = getVoice(currentGenderRef.current);
     if (selectedVoice) {
       utterance.voice = selectedVoice;
       utterance.lang = selectedVoice.lang;
+      utterance.rate = 0.95; // Slightly slower for PersonaPlex depth
+      utterance.pitch = currentGenderRef.current === 'male' ? 0.9 : 1.1;
+    } else {
+      utterance.lang = 'hi-IN';
     }
 
     const emotionalWords = ['मोहब्बत', 'दिल', 'ग़म', 'याद', 'तड़प', 'दर्द', 'इश्क़', 'सांस', 'ज़िंदगी', 'मौत', 'क़त्ल', 'जख्म', 'तलाश'];
@@ -175,12 +194,21 @@ const PoemCard: React.FC<{
       }
     };
 
-    utterance.onerror = () => {
+    utterance.onerror = (event) => {
+      console.error("SpeechSynthesis error:", event);
       setIsSpeaking(false);
       isSpeakingRef.current = false;
     };
 
-    window.speechSynthesis.speak(utterance);
+    try {
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.speak(utterance);
+      }
+    } catch (e) {
+      console.error("SpeechSynthesis execution failed:", e);
+      setIsSpeaking(false);
+      isSpeakingRef.current = false;
+    }
   };
 
   // Helper to render text with highlighting
@@ -262,6 +290,26 @@ const PoemCard: React.FC<{
       viewport={{ margin: "-50px" }}
       className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
     >
+      {isSpeaking && (
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-30 overflow-hidden">
+          <NeuralVisualizer pulse={neuralPulse} />
+          <div className="absolute top-8 left-8 flex items-center gap-3">
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+            />
+            <div className="text-[10px] text-sky-400 font-mono font-bold uppercase tracking-[0.4em]">
+              NVIDIA PersonaPlex // Cortical Uplink: Active
+            </div>
+          </div>
+          <div className="absolute bottom-8 right-8 text-right bg-black/40 backdrop-blur-md px-4 py-2 rounded-lg border border-white/5">
+            <div className="text-[9px] text-sky-300 font-mono uppercase tracking-[0.2em] mb-1">Cortex Sync: 99.98%</div>
+            <div className="text-[8px] text-slate-400 font-mono uppercase tracking-[0.2em]">Persona: Neural Professor v4.2</div>
+          </div>
+        </div>
+      )}
+
       {/* Playback Controls - Optimized for touch */}
       <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-14 z-20 flex items-center gap-2 sm:gap-3">
         {!isSpeaking ? (
@@ -275,25 +323,42 @@ const PoemCard: React.FC<{
             <Mic2 size={18} className="sm:w-5 sm:h-5" />
           </motion.button>
         ) : (
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ repeat: Infinity, duration: 1 }}
-            onClick={isPaused ? resumeSpeaking : pauseSpeaking}
-            className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
-          >
-            {isPaused ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="6" y="4" width="4" height="16"></rect>
-                <rect x="14" y="4" width="4" height="16"></rect>
-              </svg>
+          <div className="flex items-center gap-4">
+            {isSpeaking && (
+              <div className="flex items-center gap-2 px-3 py-1.5 glass rounded-full border-sky-400/20">
+                <Zap size={10} className="text-sky-400 animate-pulse" />
+                <span className="text-[8px] text-sky-400 font-bold uppercase tracking-widest">Neural Link</span>
+              </div>
             )}
-          </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={stopSpeaking}
+              className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 rounded-full text-red-500 transition-all border border-red-500/10"
+              title="Terminate Transmission"
+            >
+              <X size={18} className="sm:w-5 sm:h-5" />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+              onClick={isPaused ? resumeSpeaking : pauseSpeaking}
+              className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
+            >
+              {isPaused ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+              )}
+            </motion.button>
+          </div>
         )}
 
         <AnimatePresence mode="wait">
@@ -324,7 +389,10 @@ const PoemCard: React.FC<{
                 </button>
                 <div className="w-[1px] bg-white/10" />
                 <button
-                  onClick={() => speak('own')}
+                  onClick={() => {
+                    setShowVoicePicker(false);
+                    setShowRecordingModal(true);
+                  }}
                   className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
                   title="My Voice"
                 >
@@ -381,6 +449,14 @@ const PoemCard: React.FC<{
   );
 
 };
+
+// Add this outside MindspaceView to initialize voices
+if (typeof window !== 'undefined') {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
+}
 
 const MindspaceView: React.FC = () => {
   // State for own voice feature (moved from PoemCard)
@@ -640,7 +716,7 @@ const MindspaceView: React.FC = () => {
             <p>देखते नहीं मुझको लोग अब मुस्कुराते हुए,<br /><span className="text-sky-200/80">ये भीड़ बस उनका हुनर देखते हैं।</span></p>
             <p>मौत जिनको अज़ीज़ है मुद्दतों से जानी,<br /><span className="text-sky-200/80">उनकी आँखों में देखने से डरते हैं।</span></p>
             <p>"उन्हें क्या लेना देना तुम्हारे ज़ख्म की गहराइयों से,<br /><span className="text-sky-200/80">इल्ज़ाम दिल पर लगाते है,जो जिगर देखते हैं।</span></p>
-            <p>उनके शहर के लोग कह रहे थे मुझको,<br /><span className="text-sky-200/80">गुज़रने वाले यहाँ एक रोज़, ठहर कर देखते हैं।"</span></p>
+            <p>उनके शहर के लोग कह रहे थे मुझको,<br /><span className="text-sky-200/80">गुज़रने वाले यहाँ एक रोज़, ठहर कर देखते हैं."</span></p>
             <p>और,<br />वहम के मारे हैं ये इश्क़ को क़ातिल बताने वाले ।।<br /><span className="text-sky-200/80">ये चाँद के मुरीद हैं! जो इन्हें जी भर कर देखते हैं।।</span></p>
             <p className="mt-4 text-sky-400 font-bold">- अमन</p>
           </PoemCard>
@@ -689,8 +765,10 @@ const MindspaceView: React.FC = () => {
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
 
-          {/* New Music Section */}
+          {/* New Music Sections */}
           <MusicRoomSection />
+          <div className="h-px bg-white/5 w-full my-12" />
+          <DeepSequenceArchive />
 
           <PoemCard title="आइनों के शक़्ल">
             <p>एक तरफ़ देखा तो उसकी आँखें दिख रही थी</p>
@@ -780,7 +858,7 @@ const MindspaceView: React.FC = () => {
             <p className="text-sky-200/80">मानो एक बोझ को</p>
             <p>एक कंधे से</p>
             <p className="text-sky-200/80">दूसरे कंधे पर</p>
-            <p>सरियाते हुए</p>
+            <p className="text-sky-200/80">सरियाते हुए</p>
             <p className="text-sky-200/80">एक आवाज़ गूँजती है —</p>
             <p>"अरे!</p>
             <p className="text-sky-200/80">ना ग़म की गुंजाइश है,</p>
@@ -797,7 +875,7 @@ const MindspaceView: React.FC = () => {
             <p>एक क़लम लगता है।</p>
             <p className="text-sky-200/80">एक सड़क कील का,</p>
             <p>और बस</p>
-            <p className="text-sky-200/80">इक क़दम लगता है।"</p>
+            <p className="text-sky-200/80">इक क़दम लगता है."</p>
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
 
@@ -820,24 +898,53 @@ const MindspaceView: React.FC = () => {
 };
 
 
+// Global Audio Controller for optimized playback
+let globalAudio: HTMLAudioElement | null = null;
+
 const MusicRoomSection: React.FC = () => {
   const music = useStore((state) => state.music);
   const [playingId, setPlayingId] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState<string | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-  const togglePlay = (track: StoreMusicItem) => {
+  const togglePlay = async (track: StoreMusicItem) => {
     if (playingId === track.id) {
       audioRef.current?.pause();
       setPlayingId(null);
-    } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      audioRef.current = new Audio(track.url);
-      audioRef.current.play();
-      audioRef.current.onended = () => setPlayingId(null);
-      setPlayingId(track.id);
+      return;
     }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
+
+    setIsLoading(track.id);
+    const audio = new Audio(track.url);
+    audioRef.current = audio;
+    audio.preload = "auto";
+
+    audio.oncanplaythrough = () => {
+      if (audioRef.current === audio) {
+        setIsLoading(null);
+        setPlayingId(track.id);
+        audio.play().catch(console.error);
+      }
+    };
+
+    audio.onwaiting = () => setIsLoading(track.id);
+    audio.onplaying = () => {
+      setIsLoading(null);
+      setPlayingId(track.id);
+    };
+
+    audio.onerror = () => {
+      setIsLoading(null);
+      setPlayingId(null);
+      alert("Error loading transmission chunk.");
+    };
+
+    audio.onended = () => setPlayingId(null);
   };
 
   if (music.length === 0) return null;
@@ -852,40 +959,58 @@ const MusicRoomSection: React.FC = () => {
         >
           <Headphones size={32} />
         </motion.div>
-        <h3 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">The Soundscape Room</h3>
-        <p className="text-slate-500 uppercase tracking-widest text-xs font-bold">Curated audio experiences for deep reflection</p>
+        <h3 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">Neural Soundscapes</h3>
+        <p className="text-slate-500 uppercase tracking-widest text-xs font-bold">Optimized for high-fidelity playback // One-click sequence sync</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {music.map((track, index) => (
+        {music.slice(0, 6).map((track, index) => (
           <motion.div
             key={track.id}
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
-            className="glass p-8 rounded-[2.5rem] border-white/5 group hover:border-sky-400/30 transition-all"
+            className="glass p-8 rounded-[2.5rem] border-white/5 group hover:border-sky-400/30 transition-all relative overflow-hidden"
           >
+            {playingId === track.id && (
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ duration: track.duration, ease: 'linear' }}
+                className="absolute bottom-0 left-0 h-1 bg-sky-400/30"
+              />
+            )}
+
             <div className="flex items-center gap-6 mb-8">
               <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all ${playingId === track.id ? 'bg-sky-400 text-black shadow-[0_0_20px_rgba(56,189,248,0.4)]' : 'bg-white/5 text-slate-400 group-hover:text-sky-400'}`}>
-                <Music size={28} className={playingId === track.id ? 'animate-pulse' : ''} />
+                {isLoading === track.id ? (
+                  <Loader2 className="animate-spin" size={28} />
+                ) : (
+                  <Music size={28} className={playingId === track.id ? 'animate-pulse' : ''} />
+                )}
               </div>
               <div className="flex-1">
-                <h4 className="text-xl font-display font-bold text-white mb-1">{track.title}</h4>
+                <h4 className="text-xl font-display font-bold text-white mb-1 group-hover:text-sky-300 transition-colors uppercase tracking-tight">{track.title}</h4>
                 <div className="flex items-center gap-3 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
                   <Clock size={12} />
                   <span>{Math.floor(track.duration / 60)}:{(track.duration % 60).toFixed(0).padStart(2, '0')}</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-800" />
+                  <Volume2 size={12} className={playingId === track.id ? 'text-sky-400' : ''} />
                 </div>
               </div>
             </div>
 
             <button
               onClick={() => togglePlay(track)}
-              className={`w-full py-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 ${playingId === track.id ? 'bg-white text-black' : 'bg-sky-400/10 text-sky-400 hover:bg-sky-400 hover:text-black'}`}
+              disabled={isLoading !== null && isLoading !== track.id}
+              className={`w-full py-5 rounded-2xl font-bold uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 active:scale-[0.98] ${playingId === track.id ? 'bg-white text-black' : 'bg-sky-400/10 text-sky-400 hover:bg-sky-400 hover:text-black'}`}
             >
-              {playingId === track.id ? (
-                <><Pause size={18} fill="currentColor" /> Pause Listening</>
+              {isLoading === track.id ? (
+                <><Loader2 className="animate-spin" size={16} /> Syncing Data...</>
+              ) : playingId === track.id ? (
+                <><Pause size={18} fill="currentColor" /> Break Connection</>
               ) : (
-                <><Play size={18} fill="currentColor" /> Start Listening</>
+                <><Play size={18} fill="currentColor" /> Initiate Stream</>
               )}
             </button>
           </motion.div>
@@ -893,6 +1018,177 @@ const MusicRoomSection: React.FC = () => {
       </div>
     </section>
   );
+};
+
+const DeepSequenceArchive: React.FC = () => {
+  const music = useStore((state) => state.music);
+  const [playingId, setPlayingId] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState<string | null>(null);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+  // Only show tracks marked for archive or just the latter half of the library
+  const archiveData = music.slice(6);
+  if (archiveData.length === 0) return null;
+
+  const togglePlay = (track: StoreMusicItem) => {
+    if (playingId === track.id) {
+      audioRef.current?.pause();
+      setPlayingId(null);
+      return;
+    }
+
+    if (audioRef.current) audioRef.current.pause();
+
+    setIsLoading(track.id);
+    const audio = new Audio(track.url);
+    audioRef.current = audio;
+
+    audio.onplaying = () => {
+      setIsLoading(null);
+      setPlayingId(track.id);
+    };
+    audio.onended = () => setPlayingId(null);
+    audio.play().catch(() => {
+      setIsLoading(null);
+      setPlayingId(null);
+    });
+  };
+
+  return (
+    <section className="py-24 border-t border-white/5">
+      <div className="flex items-center gap-6 mb-16">
+        <div className="w-16 h-16 glass rounded-2xl flex items-center justify-center text-sky-400 shadow-[0_0_30px_rgba(56,189,248,0.1)]">
+          <Database size={28} />
+        </div>
+        <div>
+          <h3 className="text-3xl font-display font-bold text-white">The 50GB Archive</h3>
+          <p className="text-slate-500 uppercase tracking-widest text-[10px] font-bold">High-capacity storage vault // Deep neural sequences</p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {archiveData.map((track) => (
+          <div
+            key={track.id}
+            className="glass p-6 rounded-2xl border-white/5 flex items-center justify-between hover:bg-white/[0.02] transition-colors group cursor-pointer"
+            onClick={() => togglePlay(track)}
+          >
+            <div className="flex items-center gap-6">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${playingId === track.id ? 'bg-sky-400 text-black' : 'bg-white/5 text-slate-500'}`}>
+                {isLoading === track.id ? <Loader2 className="animate-spin" size={20} /> : playingId === track.id ? <Pause size={20} /> : <Play size={20} />}
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors uppercase tracking-widest">{track.title}</h4>
+                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Archive Chunk // {Math.floor(track.duration / 60)}:{(track.duration % 60).toFixed(0).padStart(2, '0')}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Volume2 size={16} className={playingId === track.id ? 'animate-pulse' : ''} />
+              <span className="text-[9px] font-bold uppercase tracking-[0.3em]">Online</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+const NeuralVisualizer: React.FC<{ pulse?: number }> = ({ pulse = 0 }) => {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let particles: any[] = [];
+    let nebulaTime = 0;
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    };
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Init particles with more "neural" feel
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.offsetWidth,
+        y: Math.random() * canvas.offsetHeight,
+        size: Math.random() * 1.5 + 0.5,
+        speedX: (Math.random() - 0.5) * 1,
+        speedY: (Math.random() - 0.5) * 1,
+        color: `rgba(56, 189, 248, ${Math.random() * 0.3})`,
+        life: Math.random(),
+      });
+    }
+
+    const draw = (time: number) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      nebulaTime += 0.01;
+
+      // Pulse background glow
+      const pulseOpacity = (Math.sin(nebulaTime * 2) + 1) * 0.05;
+      ctx.fillStyle = `rgba(14, 165, 233, ${pulseOpacity})`;
+      ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+      // Neural Waves
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(56, 189, 248, ${0.1 / (i + 1)})`;
+        ctx.lineWidth = 1;
+        const offset = i * 20;
+        ctx.moveTo(0, canvas.offsetHeight / 2 + offset);
+
+        for (let x = 0; x < canvas.offsetWidth; x += 3) {
+          const y = (canvas.offsetHeight / 2) + offset +
+            Math.sin(x * 0.02 + nebulaTime + i) * (20 + (pulse / 2));
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      // Particles showing synaptic connections
+      particles.forEach((p, idx) => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        if (p.x < 0 || p.x > canvas.offsetWidth) p.speedX *= -1;
+        if (p.y < 0 || p.y > canvas.offsetHeight) p.speedY *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+
+        // Connect nearby particles lightly
+        particles.slice(idx + 1, idx + 5).forEach(p2 => {
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 80) {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(56, 189, 248, ${0.05 * (1 - dist / 80)})`;
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        });
+      });
+
+      animationFrameId = requestAnimationFrame(draw);
+    };
+
+    animationFrameId = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resize);
+    };
+  }, [pulse]);
+
+  return <canvas ref={canvasRef} className="w-full h-full" />;
 };
 
 export default MindspaceView;
