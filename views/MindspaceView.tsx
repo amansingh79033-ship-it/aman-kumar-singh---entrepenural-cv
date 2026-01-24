@@ -23,16 +23,27 @@ const PoemCard: React.FC<{
   const currentChunksRef = React.useRef<{ text: string; offset: number }[]>([]);
   const currentGenderRef = React.useRef<'male' | 'female' | 'own'>('male');
   const [neuralPulse, setNeuralPulse] = React.useState(0);
+  const [voiceError, setVoiceError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let interval: any;
+    let resumeInterval: any;
     if (isSpeaking) {
       interval = setInterval(() => {
         setNeuralPulse(prev => (prev + 1) % 100);
       }, 50);
+
+      // Workaround for Chrome bug: resume speech every 10s to prevent timeout
+      resumeInterval = setInterval(() => {
+        if (typeof window !== 'undefined' && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        }
+      }, 10000);
     }
     return () => {
       clearInterval(interval);
+      clearInterval(resumeInterval);
       if (isSpeakingRef.current) {
         window.speechSynthesis.cancel();
       }
@@ -143,310 +154,339 @@ const PoemCard: React.FC<{
     const utterance = new SpeechSynthesisUtterance(chunk.text);
     utteranceRef.current = utterance;
 
-    const getVoice = (gender: string) => {
-      const allVoices = window.speechSynthesis.getVoices();
-      // Look for premium quality voices first
-      const hiVoices = allVoices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
-      const premiumVoices = hiVoices.filter(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('premium'));
+    setVoiceError(null);
+    const allVoices = window.speechSynthesis.getVoices();
 
-      if (gender === 'male') {
-        return premiumVoices.find(v => v.name.toLowerCase().includes('male')) ||
-          hiVoices.find(v => v.name.toLowerCase().includes('male')) ||
-          hiVoices[0] || allVoices[0];
-      } else if (gender === 'female') {
-        return premiumVoices.find(v => v.name.toLowerCase().includes('female')) ||
-          hiVoices.find(v => v.name.toLowerCase().includes('female')) ||
-          hiVoices[0] || allVoices[0];
-      }
-      return premiumVoices[0] || hiVoices[0] || allVoices[0];
-    };
+    if (allVoices.length === 0) {
+      // Fallback for some browsers that need a kick
+      window.speechSynthesis.getVoices();
+    }
 
-    const selectedVoice = getVoice(currentGenderRef.current);
-    if (selectedVoice) {
-      utterance.voice = selectedVoice;
-      utterance.lang = selectedVoice.lang;
-      utterance.rate = 0.95; // Slightly slower for PersonaPlex depth
-      utterance.pitch = currentGenderRef.current === 'male' ? 0.9 : 1.1;
+    // Look for premium quality voices first
+    const hiVoices = allVoices.filter(v => v.lang.startsWith('hi') || v.lang.startsWith('en-IN'));
+    const premiumVoices = hiVoices.filter(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('premium'));
+
+    if (gender === 'male') {
+      return premiumVoices.find(v => v.name.toLowerCase().includes('male')) ||
+        hiVoices.find(v => v.name.toLowerCase().includes('male')) ||
+        hiVoices[0] || allVoices[0];
+    } else if (gender === 'female') {
+      return premiumVoices.find(v => v.name.toLowerCase().includes('female')) ||
+        hiVoices.find(v => v.name.toLowerCase().includes('female')) ||
+        hiVoices[0] || allVoices[0];
+    }
+    return premiumVoices[0] || hiVoices[0] || allVoices[0];
+  };
+
+  const selectedVoice = getVoice(currentGenderRef.current);
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+    utterance.lang = selectedVoice.lang;
+    utterance.rate = 0.95; // Slightly slower for PersonaPlex depth
+    utterance.pitch = currentGenderRef.current === 'male' ? 0.9 : 1.1;
+  } else {
+    utterance.lang = 'hi-IN';
+  }
+
+  const emotionalWords = ['मोहब्बत', 'दिल', 'ग़म', 'याद', 'तड़प', 'दर्द', 'इश्क़', 'सांस', 'ज़िंदगी', 'मौत', 'क़त्ल', 'जख्म', 'तलाश'];
+  const isEmotional = emotionalWords.some(word => chunk.text.includes(word));
+
+  utterance.pitch = (currentGenderRef.current === 'female' ? 0.85 : 0.65) + (isEmotional ? 0.1 : 0) + (Math.random() * 0.05);
+  utterance.rate = playbackSpeed * (isEmotional ? 0.75 : 0.85);
+  utterance.volume = 1;
+
+  utterance.onboundary = (event) => {
+    if (event.name === 'word') {
+      setHighlightRange({
+        start: chunk.offset + event.charIndex,
+        end: chunk.offset + event.charIndex + (event.charLength || 5)
+      });
+    }
+  };
+
+  utterance.onend = () => {
+    if (isSpeakingRef.current) {
+      const pauseTime = isEmotional ? 1200 : 800; // Poetic "breathing" space
+      setTimeout(() => playChunk(index + 1), pauseTime);
+    }
+  };
+
+  utterance.onerror = (event) => {
+    console.error("SpeechSynthesis error:", event);
+    setIsSpeaking(false);
+    isSpeakingRef.current = false;
+  };
+
+  try {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      // Essential for mobile browsers: a small delay to ensure context is ready
+      setTimeout(() => {
+        if (isSpeakingRef.current) {
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 250);
     } else {
-      utterance.lang = 'hi-IN';
+      setVoiceError("System: Speech Synthesis Unsupported");
+    }
+  } catch (e) {
+    console.error("SpeechSynthesis execution failed:", e);
+    setVoiceError("Cortex Link Failure");
+    setIsSpeaking(false);
+    isSpeakingRef.current = false;
+  }
+};
+
+// Helper to render text with highlighting
+const renderTextWithHighlight = (text: string, globalOffset: number, colorClass: string = "text-slate-300") => {
+  // Match words and non-word separators
+  const parts = text.split(/(\s+|[,.!?;:]+)/);
+  let currentOffset = globalOffset;
+
+  return parts.map((part, i) => {
+    const partStart = currentOffset;
+    currentOffset += part.length;
+    const partEnd = currentOffset;
+
+    const isHighlighted = highlightRange &&
+      ((partStart >= highlightRange.start && partStart < highlightRange.end) ||
+        (highlightRange.start >= partStart && highlightRange.start < partEnd));
+
+    return (
+      <span
+        key={i}
+        className={`transition-all duration-200 ${isHighlighted ? 'text-sky-400 font-bold scale-110 shadow-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' : colorClass}`}
+      >
+        {part}
+      </span>
+    );
+  });
+};
+
+// Simplified child walker (works for the specific structure used in this project)
+const renderChildren = (nodes: React.ReactNode, baseOffset: number): { elements: React.ReactNode; totalLength: number } => {
+  let currentOffset = baseOffset;
+
+  const elements = React.Children.map(nodes, (child) => {
+    if (typeof child === 'string' || typeof child === 'number') {
+      const text = String(child);
+      const el = renderTextWithHighlight(text, currentOffset);
+      currentOffset += text.length;
+      return el;
     }
 
-    const emotionalWords = ['मोहब्बत', 'दिल', 'ग़म', 'याद', 'तड़प', 'दर्द', 'इश्क़', 'सांस', 'ज़िंदगी', 'मौत', 'क़त्ल', 'जख्म', 'तलाश'];
-    const isEmotional = emotionalWords.some(word => chunk.text.includes(word));
+    if (React.isValidElement(child)) {
+      const { children: subChildren, className: childClass } = child.props as any;
 
-    utterance.pitch = (currentGenderRef.current === 'female' ? 0.85 : 0.65) + (isEmotional ? 0.1 : 0) + (Math.random() * 0.05);
-    utterance.rate = playbackSpeed * (isEmotional ? 0.75 : 0.85);
-    utterance.volume = 1;
-
-    utterance.onboundary = (event) => {
-      if (event.name === 'word') {
-        setHighlightRange({
-          start: chunk.offset + event.charIndex,
-          end: chunk.offset + event.charIndex + (event.charLength || 5)
-        });
+      // Handle BR specifically
+      if (child.type === 'br') {
+        currentOffset += 1; // innerText usually treats BR as newline
+        return child;
       }
-    };
 
-    utterance.onend = () => {
-      if (isSpeakingRef.current) {
-        const pauseTime = isEmotional ? 1200 : 800; // Poetic "breathing" space
-        setTimeout(() => playChunk(index + 1), pauseTime);
+      // Handle specific components or elements
+      const sub = renderChildren(subChildren, currentOffset);
+      currentOffset = (sub as any).offset || currentOffset + (React.isValidElement(child) ? 0 : 0); // Very rough innerText estimation
+
+      // For common elements like p, span, div
+      if (typeof child.type === 'string') {
+        return React.cloneElement(child as React.ReactElement<any>, { ...(child as any).props }, sub.elements);
       }
-    };
-
-    utterance.onerror = (event) => {
-      console.error("SpeechSynthesis error:", event);
-      setIsSpeaking(false);
-      isSpeakingRef.current = false;
-    };
-
-    try {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.speak(utterance);
-      }
-    } catch (e) {
-      console.error("SpeechSynthesis execution failed:", e);
-      setIsSpeaking(false);
-      isSpeakingRef.current = false;
     }
-  };
+    return child;
+  });
 
-  // Helper to render text with highlighting
-  const renderTextWithHighlight = (text: string, globalOffset: number, colorClass: string = "text-slate-300") => {
-    // Match words and non-word separators
-    const parts = text.split(/(\s+|[,.!?;:]+)/);
-    let currentOffset = globalOffset;
+  return { elements, totalLength: currentOffset - baseOffset };
+};
 
-    return parts.map((part, i) => {
-      const partStart = currentOffset;
-      currentOffset += part.length;
-      const partEnd = currentOffset;
+// Since innerText sync is tricky with dynamic structures, 
+// we'll use a more robust approach: reconstruct the text exactly as innerText would.
+// But for this portfolio, a simpler "Highlight word if it matches" is usually enough if indices are approximate.
+// However, the user wants "REAL TIME SYNCED".
 
-      const isHighlighted = highlightRange &&
-        ((partStart >= highlightRange.start && partStart < highlightRange.end) ||
-          (highlightRange.start >= partStart && highlightRange.start < partEnd));
+// Let's use a simpler heuristic for the title highlight since it's just a string.
+const titleOffset = 0;
+const contentStartOffset = title ? title.length + 2 : 0; // +2 for ". "
 
-      return (
-        <span
-          key={i}
-          className={`transition-all duration-200 ${isHighlighted ? 'text-sky-400 font-bold scale-110 shadow-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' : colorClass}`}
-        >
-          {part}
-        </span>
-      );
-    });
-  };
-
-  // Simplified child walker (works for the specific structure used in this project)
-  const renderChildren = (nodes: React.ReactNode, baseOffset: number): { elements: React.ReactNode; totalLength: number } => {
-    let currentOffset = baseOffset;
-
-    const elements = React.Children.map(nodes, (child) => {
-      if (typeof child === 'string' || typeof child === 'number') {
-        const text = String(child);
-        const el = renderTextWithHighlight(text, currentOffset);
-        currentOffset += text.length;
-        return el;
-      }
-
-      if (React.isValidElement(child)) {
-        const { children: subChildren, className: childClass } = child.props as any;
-
-        // Handle BR specifically
-        if (child.type === 'br') {
-          currentOffset += 1; // innerText usually treats BR as newline
-          return child;
-        }
-
-        // Handle specific components or elements
-        const sub = renderChildren(subChildren, currentOffset);
-        currentOffset = (sub as any).offset || currentOffset + (React.isValidElement(child) ? 0 : 0); // Very rough innerText estimation
-
-        // For common elements like p, span, div
-        if (typeof child.type === 'string') {
-          return React.cloneElement(child as React.ReactElement<any>, { ...(child as any).props }, sub.elements);
-        }
-      }
-      return child;
-    });
-
-    return { elements, totalLength: currentOffset - baseOffset };
-  };
-
-  // Since innerText sync is tricky with dynamic structures, 
-  // we'll use a more robust approach: reconstruct the text exactly as innerText would.
-  // But for this portfolio, a simpler "Highlight word if it matches" is usually enough if indices are approximate.
-  // However, the user wants "REAL TIME SYNCED".
-
-  // Let's use a simpler heuristic for the title highlight since it's just a string.
-  const titleOffset = 0;
-  const contentStartOffset = title ? title.length + 2 : 0; // +2 for ". "
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay }}
-      viewport={{ margin: "-50px" }}
-      className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
-    >
-      {isSpeaking && (
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-30 overflow-hidden">
-          <NeuralVisualizer pulse={neuralPulse} />
-          <div className="absolute top-8 left-8 flex items-center gap-3">
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]"
-            />
-            <div className="text-[10px] text-sky-400 font-mono font-bold uppercase tracking-[0.4em]">
-              NVIDIA PersonaPlex // Cortical Uplink: Active
-            </div>
-          </div>
-          <div className="absolute bottom-8 right-8 text-right bg-black/40 backdrop-blur-md px-4 py-2 rounded-lg border border-white/5">
-            <div className="text-[9px] text-sky-300 font-mono uppercase tracking-[0.2em] mb-1">Cortex Sync: 99.98%</div>
-            <div className="text-[8px] text-slate-400 font-mono uppercase tracking-[0.2em]">Persona: Neural Professor v4.2</div>
+return (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay }}
+    viewport={{ margin: "-50px" }}
+    className={`group relative p-4 sm:p-6 md:p-8 rounded-[1.2rem] sm:rounded-[1.5rem] md:rounded-[2rem] border border-white/5 bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-xl hover:bg-white/[0.05] transition-all duration-500 overflow-hidden ${featured ? 'md:col-span-2 shadow-[0_0_50px_-12px_rgba(56,189,248,0.1)]' : ''} ${className} poem-card-mobile`}
+  >
+    {isSpeaking && (
+      <div className="absolute inset-0 z-0 pointer-events-none opacity-30 overflow-hidden">
+        <NeuralVisualizer pulse={neuralPulse} />
+        <div className="absolute top-8 left-8 flex items-center gap-3">
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="w-2 h-2 rounded-full bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+          />
+          <div className="text-[10px] text-sky-400 font-mono font-bold uppercase tracking-[0.4em]">
+            NVIDIA PersonaPlex // Cortical Uplink: Active
           </div>
         </div>
-      )}
+        <div className="absolute bottom-8 right-8 text-right bg-black/40 backdrop-blur-md px-4 py-2 rounded-lg border border-white/5">
+          <div className="text-[9px] text-sky-300 font-mono uppercase tracking-[0.2em] mb-1">Cortex Sync: 99.98%</div>
+          <div className="text-[8px] text-slate-400 font-mono uppercase tracking-[0.2em]">Persona: Neural Professor v4.2</div>
+        </div>
+      </div>
+    )}
 
-      {/* Playback Controls - Optimized for touch */}
-      <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-14 z-20 flex items-center gap-2 sm:gap-3">
-        {!isSpeaking ? (
+    {voiceError && (
+      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-6 text-center">
+        <div className="space-y-4">
+          <AlertCircle className="text-red-500 mx-auto" size={32} />
+          <p className="text-white text-xs font-mono uppercase tracking-widest">{voiceError}</p>
+          <button
+            onClick={() => setVoiceError(null)}
+            className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] uppercase font-bold tracking-widest"
+          >
+            Acknowledge
+          </button>
+        </div>
+      </div>
+    )}
+
+    {/* Playback Controls - Optimized for touch */}
+    <div className="absolute top-3 sm:top-4 md:top-6 right-3 sm:right-4 md:right-14 z-20 flex items-center gap-2 sm:gap-3">
+      {!isSpeaking ? (
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowVoicePicker(!showVoicePicker)}
+          className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
+          title="Hear with emotion"
+        >
+          <Mic2 size={18} className="sm:w-5 sm:h-5" />
+        </motion.button>
+      ) : (
+        <div className="flex items-center gap-4">
+          {isSpeaking && (
+            <div className="flex items-center gap-2 px-3 py-1.5 glass rounded-full border-sky-400/20">
+              <Zap size={10} className="text-sky-400 animate-pulse" />
+              <span className="text-[8px] text-sky-400 font-bold uppercase tracking-widest">Neural Link</span>
+            </div>
+          )}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setShowVoicePicker(!showVoicePicker)}
-            className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-white/5 hover:bg-sky-400/20 rounded-full text-white/40 hover:text-sky-400 transition-all border border-white/5"
-            title="Hear with emotion"
+            onClick={stopSpeaking}
+            className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 rounded-full text-red-500 transition-all border border-red-500/10"
+            title="Terminate Transmission"
           >
-            <Mic2 size={18} className="sm:w-5 sm:h-5" />
+            <X size={18} className="sm:w-5 sm:h-5" />
           </motion.button>
-        ) : (
-          <div className="flex items-center gap-4">
-            {isSpeaking && (
-              <div className="flex items-center gap-2 px-3 py-1.5 glass rounded-full border-sky-400/20">
-                <Zap size={10} className="text-sky-400 animate-pulse" />
-                <span className="text-[8px] text-sky-400 font-bold uppercase tracking-widest">Neural Link</span>
-              </div>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ repeat: Infinity, duration: 1 }}
+            onClick={isPaused ? resumeSpeaking : pauseSpeaking}
+            className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
+          >
+            {isPaused ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+              </svg>
             )}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={stopSpeaking}
-              className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 rounded-full text-red-500 transition-all border border-red-500/10"
-              title="Terminate Transmission"
-            >
-              <X size={18} className="sm:w-5 sm:h-5" />
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ repeat: Infinity, duration: 1 }}
-              onClick={isPaused ? resumeSpeaking : pauseSpeaking}
-              className="min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] md:w-auto md:h-auto md:p-3 flex items-center justify-center bg-sky-500/20 rounded-full text-sky-400 border border-sky-500/20"
-            >
-              {isPaused ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="6" y="4" width="4" height="16"></rect>
-                  <rect x="14" y="4" width="4" height="16"></rect>
-                </svg>
-              )}
-            </motion.button>
-          </div>
+          </motion.button>
+        </div>
+      )}
+
+      <AnimatePresence mode="wait">
+        {showVoicePicker && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
+            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
+            className="absolute top-full md:right-full mt-3 md:mt-0 md:mr-4 right-0 bg-black/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-2xl min-w-[160px] sm:min-w-[180px]"
+          >
+            <div className="flex gap-2">
+              <button
+                onClick={() => speak('male')}
+                className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
+                title="Men Voice"
+              >
+                <User size={16} className="sm:size-5" />
+                <span>Men</span>
+              </button>
+              <div className="w-[1px] bg-white/10" />
+              <button
+                onClick={() => speak('female')}
+                className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
+                title="Women Voice"
+              >
+                <UserCheck size={16} className="sm:size-5" />
+                <span>Women</span>
+              </button>
+              <div className="w-[1px] bg-white/10" />
+              <button
+                onClick={() => {
+                  setShowVoicePicker(false);
+                  setShowRecordingModal(true);
+                }}
+                className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
+                title="My Voice"
+              >
+                <User size={16} className="sm:size-5" />
+                <span>My Voice</span>
+              </button>
+            </div>
+
+            <div className="border-t border-white/5 flex items-center justify-between p-1 xs:p-1.5 sm:p-2 pt-1.5 xs:pt-2 sm:pt-3">
+              {[0.8, 1.0, 1.25, 1.5].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setPlaybackSpeed(s)}
+                  className={`px-1.5 xs:px-2 sm:px-3 py-1 xs:py-1.5 sm:py-2 rounded-sm xs:rounded-md text-[6px] xs:text-[7px] sm:text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
+          </motion.div>
         )}
+      </AnimatePresence>
+    </div>
 
-        <AnimatePresence mode="wait">
-          {showVoicePicker && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
-              animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, x: 20, y: -10 }}
-              className="absolute top-full md:right-full mt-3 md:mt-0 md:mr-4 right-0 bg-black/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-3 sm:p-4 flex flex-col gap-3 shadow-2xl min-w-[160px] sm:min-w-[180px]"
-            >
-              <div className="flex gap-2">
-                <button
-                  onClick={() => speak('male')}
-                  className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
-                  title="Men Voice"
-                >
-                  <User size={16} className="sm:size-5" />
-                  <span>Men</span>
-                </button>
-                <div className="w-[1px] bg-white/10" />
-                <button
-                  onClick={() => speak('female')}
-                  className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
-                  title="Women Voice"
-                >
-                  <UserCheck size={16} className="sm:size-5" />
-                  <span>Women</span>
-                </button>
-                <div className="w-[1px] bg-white/10" />
-                <button
-                  onClick={() => {
-                    setShowVoicePicker(false);
-                    setShowRecordingModal(true);
-                  }}
-                  className="flex-1 flex flex-col items-center justify-center gap-2 py-3 sm:py-4 px-2 hover:bg-white/10 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-all min-h-[44px]"
-                  title="My Voice"
-                >
-                  <User size={16} className="sm:size-5" />
-                  <span>My Voice</span>
-                </button>
-              </div>
-
-              <div className="border-t border-white/5 flex items-center justify-between p-1 xs:p-1.5 sm:p-2 pt-1.5 xs:pt-2 sm:pt-3">
-                {[0.8, 1.0, 1.25, 1.5].map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setPlaybackSpeed(s)}
-                    className={`px-1.5 xs:px-2 sm:px-3 py-1 xs:py-1.5 sm:py-2 rounded-sm xs:rounded-md text-[6px] xs:text-[7px] sm:text-[8px] font-bold transition-all ${playbackSpeed === s ? 'bg-sky-400 text-black' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
-                  >
-                    {s}x
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+    {title && (
+      <div className="absolute -top-10 -right-10 opacity-[0.04] pointer-events-none select-none transition-transform duration-700 group-hover:scale-110">
+        <span className="text-[8rem] md:text-[12rem] font-display font-bold leading-none whitespace-nowrap text-white">
+          {title}
+        </span>
       </div>
+    )}
 
-      {title && (
-        <div className="absolute -top-10 -right-10 opacity-[0.04] pointer-events-none select-none transition-transform duration-700 group-hover:scale-110">
-          <span className="text-[8rem] md:text-[12rem] font-display font-bold leading-none whitespace-nowrap text-white">
-            {title}
-          </span>
-        </div>
-      )}
-
-      {title && (
-        <div className="mb-8 relative z-10">
-          <h4 className="text-lg xs:text-xl md:text-2xl font-display text-yellow-100/90 tracking-widest uppercase italic border-l-2 border-yellow-500/50 pl-4">
-            {renderTextWithHighlight(title, titleOffset, "text-yellow-100/90")}
-          </h4>
-        </div>
-      )}
-
-      <div
-        ref={contentRef}
-        className={`space-y-2 xs:space-y-3 sm:space-y-4 text-slate-300 font-light leading-relaxed text-xs xs:text-sm sm:text-base md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-6 xs:gap-8 sm:gap-12' : ''}`}
-      >
-        {isSpeaking ? (
-          /* Using recursive walker to inject highlights while preserving structure */
-          renderChildren(children, contentStartOffset).elements
-        ) : children}
+    {title && (
+      <div className="mb-8 relative z-10">
+        <h4 className="text-lg xs:text-xl md:text-2xl font-display text-yellow-100/90 tracking-widest uppercase italic border-l-2 border-yellow-500/50 pl-4">
+          {renderTextWithHighlight(title, titleOffset, "text-yellow-100/90")}
+        </h4>
       </div>
+    )}
 
-      <div className="absolute top-4 sm:top-6 right-4 sm:right-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
-      <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
-    </motion.div>
-  );
+    <div
+      ref={contentRef}
+      className={`space-y-2 xs:space-y-3 sm:space-y-4 text-slate-300 font-light leading-relaxed text-xs xs:text-sm sm:text-base md:text-xl relative z-10 ${featured ? 'md:columns-2 gap-6 xs:gap-8 sm:gap-12' : ''}`}
+    >
+      {isSpeaking ? (
+        /* Using recursive walker to inject highlights while preserving structure */
+        renderChildren(children, contentStartOffset).elements
+      ) : children}
+    </div>
+
+    <div className="absolute top-4 sm:top-6 right-4 sm:right-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
+    <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-white/10 group-hover:bg-sky-400/50 transition-colors duration-500 z-10" />
+  </motion.div>
+);
 
 };
 
