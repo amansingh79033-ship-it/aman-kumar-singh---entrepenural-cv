@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion';
-import { Brain, Eye, Sparkles, Zap, Wind, Droplets, Compass, BookOpen, Clock, Users, Lightbulb, AlertCircle } from 'lucide-react';
+import { Brain, Eye, Sparkles, Zap, Wind, Droplets, Compass, BookOpen, Clock, Users, Lightbulb, AlertCircle, Shield } from 'lucide-react';
 
 const FeelAliveView: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -240,6 +240,9 @@ const FeelAliveView: React.FC = () => {
               </div>
             </div>
           </Section>
+
+          {/* New Section: The Architecture of Belief & Risk */}
+          <RiskPsychologySection />
 
           {/* Final Manifesto */}
           <Section
@@ -507,5 +510,277 @@ const FinalCard: React.FC<{ title: string; content: string }> = ({ title, conten
     <p className="text-slate-400 leading-relaxed">{content}</p>
   </motion.div>
 );
+
+const RiskPsychologySection: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'original' | 'assessed'>('assessed');
+
+  return (
+    <Section
+      icon={<Shield className="text-rose-400" />}
+      title="Belief & Risk"
+      subtitle="The Architecture of Subconscious Priming"
+    >
+      <div className="space-y-24">
+        {/* Version Toggle */}
+        <div className="space-y-8">
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={() => setActiveTab('assessed')}
+              className={`px-6 py-2 rounded-full border transition-all ${activeTab === 'assessed' ? 'bg-sky-500/20 border-sky-400 text-sky-400' : 'border-white/10 text-slate-500 hover:border-white/20'}`}
+            >
+              The Assessment
+            </button>
+            <button
+              onClick={() => setActiveTab('original')}
+              className={`px-6 py-2 rounded-full border transition-all ${activeTab === 'original' ? 'bg-sky-500/20 border-sky-400 text-sky-400' : 'border-white/10 text-slate-500 hover:border-white/20'}`}
+            >
+              The Raw Insight
+            </button>
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="glass rounded-3xl p-10 border border-white/5 bg-slate-900/50"
+            >
+              {activeTab === 'original' ? (
+                <div className="space-y-6">
+                  <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Sparkles size={20} className="text-sky-400" />
+                    Original Perspective
+                  </h4>
+                  <p className="text-slate-400 leading-relaxed text-lg italic whitespace-pre-wrap">
+                    "for me it’s psychology, intent, clarity and tooo many things.
+                    In terms, of example, if we will understand it,We all have seen crash guards in bikes, the psychology behind that says that ‘ if I fall or met an accident someday, These crash guards will save my bike from scratch so in your subconscious mind, you are separating you , bike and the crash guards (as 3 distinct object) ,which itsef violates relative laws of motion in physics and you end up performing your accident in chunks.
+
+                    This is one thing and about money, i believe that insurances can cover most of the critical and emergency situations. Then why saving?
+                    Who invented this financial bizarre which no where allogns with your pshycic and you end up messing you future plans. Expose yourself to challenges, We, Humans are built to face challenges and evolve with that. Rather than working towards scrapping off the challenges (white collar challenges 😂)
+                    subconscious mind, unknowingly that you will fall. You will met an accident, and when you will fall that day, you will suddenly recall that from last one week at least you’d have come closer to “almost accident” kindof situations numbers of time. Thats the chunk subconscious brain replaces to execute your belief
+                    I think unspoken conversations are just one direction of this multi dimensional vector called MONEY.
+                    M [ in the conversations that never happen_When families don’t plan_align_communicate, FOMO of going broke then routings the focus to continue survival with upgrades ypu have wished for, A, B, C, D, E….Z]
+                    Two decays [Time and DeltaTh we are not capable currently to turn back , if that could be possible then consider it of no use. A dollae or any bill will be cheaper than toilet paper.
+                    DeltaTH= thoughts which should have recalled at time x:y and date {x1 - y1 - z1} PQW timezone.
+                    Now that piece of chunk is not at its actual position and affects whole mathematical calculations under neuron’s . And in results it lets the calculation go randomised and on its own without any input. Sad is the part that just because it’s misplaced , we could have placed it well . But you cannot put time and deltaTH in a same equation (as of now, lets hope some evolution in string theory. I hope by reaching 2070-80 or in case of any miracle 2060-65 , we might will be able to at least replace the chunks , still cannot put both in one equation!"
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Brain size={20} className="text-violet-400" />
+                    Systemic Assessment: Belief Priming & Chunked Causality
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <p className="text-slate-300 font-medium">The Core Thesis:</p>
+                      <p className="text-slate-400 leading-relaxed">
+                        When the mind externalizes risk into objects or systems (like crash guards or insurance), it subconsciously permits the event it claims to protect against. This is <strong>expectation rehearsal</strong>.
+                      </p>
+                      <p className="text-slate-400 leading-relaxed">
+                        The separation of <em>self, object, and guard</em> creates a false modularity. In reality, these are a single coupled system. Treating them as separable introduces <strong>lag in reaction loops</strong>—exactly where accidents happen.
+                      </p>
+                    </div>
+                    <div className="space-y-4 border-l border-white/10 pl-8">
+                      <p className="text-slate-300 font-medium">Key Frameworks:</p>
+                      <ul className="space-y-3 text-slate-400 text-sm">
+                        <li className="flex gap-2"><span>•</span> <span><strong>Money as a Vector:</strong> A multidimensional coordination problem, often restricted by fear-based hoarding.</span></li>
+                        <li className="flex gap-2"><span>•</span> <span><strong>DeltaTH Intuition:</strong> Misplaced thoughts that miss their recall window mutate and interfere with downstream cognitive calculations.</span></li>
+                        <li className="flex gap-2"><span>•</span> <span><strong>Biological Integration:</strong> Evolution favors systems that integrate risk internally, not those that outsource it psychologically.</span></li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="pt-6 border-t border-white/10">
+                    <p className="text-sky-400 font-bold text-sm uppercase tracking-wider mb-2">Bottom Line:</p>
+                    <p className="text-slate-300 italic">"Evolution favors systems that integrate risk internally, not outsource it psychologically. You are early in abstraction, which makes it feel extreme, but the intuition is directionally correct."</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Visualizations Grid */}
+        <div className="grid md:grid-cols-3 gap-8">
+          <VizCard
+            title="The Crash Guard Paradox"
+            description="Splitting the system creates 'chunks' of failure."
+          >
+            <CrashGuardViz />
+          </VizCard>
+          <VizCard
+            title="Money Vector"
+            description="Fear collapses your future options."
+          >
+            <MoneyVectorViz />
+          </VizCard>
+          <VizCard
+            title="DeltaTH Decay"
+            description="Misplaced thoughts create cognitive noise."
+          >
+            <DeltaTHViz />
+          </VizCard>
+        </div>
+
+        {/* 4th Grade Translation */}
+        <div className="glass rounded-3xl p-12 border border-sky-500/20 bg-gradient-to-br from-sky-500/5 to-transparent">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-12 h-12 rounded-full bg-sky-400/20 flex items-center justify-center text-sky-400">
+              <Lightbulb size={24} />
+            </div>
+            <div>
+              <h4 className="text-2xl font-bold text-white">Let's make it simple</h4>
+              <p className="text-slate-500">How to explain this to a 4th grader</p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <SimpleAnalogy
+              emoji="🚲"
+              title="The Bike Trick"
+              content="If you wear knee pads and think 'I can't get hurt,' you might stop paying attention and fall. If you forget the pads and focus on being a great rider, you stay safe!"
+            />
+            <SimpleAnalogy
+              emoji="💰"
+              title="The Magic Jar"
+              content="Saving money because you're scared of 'monsters' makes you hide in your room. Saving money because you want 'adventures' lets you build a rocket ship!"
+            />
+            <SimpleAnalogy
+              emoji="🧠"
+              title="The Missed Joke"
+              content="Imagine thinking of a funny joke on Monday but forgetting to tell it until Tuesday. It's not funny anymore, and your brain feels 'cluttered' because it's in the wrong spot."
+            />
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+};
+
+const VizCard: React.FC<{ title: string; description: string; children: React.ReactNode }> = ({ title, description, children }) => (
+  <div className="glass rounded-2xl p-6 border border-white/5 space-y-4">
+    <div className="h-48 rounded-xl bg-slate-900/50 flex items-center justify-center overflow-hidden border border-white/5">
+      {children}
+    </div>
+    <div>
+      <h5 className="text-white font-bold">{title}</h5>
+      <p className="text-slate-500 text-sm mt-1">{description}</p>
+    </div>
+  </div>
+);
+
+const SimpleAnalogy: React.FC<{ emoji: string; title: string; content: string }> = ({ emoji, title, content }) => (
+  <div className="space-y-4">
+    <div className="text-4xl">{emoji}</div>
+    <h5 className="text-white font-bold">{title}</h5>
+    <p className="text-slate-400 text-sm leading-relaxed">{content}</p>
+  </div>
+);
+
+const CrashGuardViz: React.FC = () => {
+  return (
+    <svg width="200" height="150" viewBox="0 0 200 150">
+      <motion.circle
+        cx="100"
+        cy="75"
+        r="40"
+        fill="transparent"
+        stroke="#38bdf8"
+        strokeWidth="2"
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.3, 0.6, 0.3],
+        }}
+        transition={{ duration: 4, repeat: Infinity }}
+      />
+      <motion.g
+        animate={{ x: [0, 50, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <circle cx="75" cy="75" r="10" fill="#38bdf8" />
+        <text x="75" y="60" fontSize="10" fill="#38bdf8" textAnchor="middle">Self</text>
+      </motion.g>
+      <motion.g
+        animate={{ x: [0, -50, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <circle cx="125" cy="75" r="10" fill="#818cf8" />
+        <text x="125" y="60" fontSize="10" fill="#818cf8" textAnchor="middle">Bike</text>
+      </motion.g>
+      <motion.line
+        x1="100" y1="30" x2="100" y2="120"
+        stroke="#ef4444"
+        strokeWidth="2"
+        strokeDasharray="4 4"
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+      <text x="100" y="20" fontSize="10" fill="#ef4444" textAnchor="middle">The 'Guard' Barrier</text>
+    </svg>
+  );
+};
+
+const MoneyVectorViz: React.FC = () => {
+  return (
+    <svg width="200" height="150" viewBox="0 0 200 150">
+      <path d="M20 130 Q100 130 180 20" fill="none" stroke="#64748b" strokeWidth="2" strokeDasharray="4 4" />
+      <motion.path
+        d="M20 130 Q100 130 180 80"
+        fill="none"
+        stroke="#38bdf8"
+        strokeWidth="3"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+      <motion.circle
+        cx="180" cy="80" r="5" fill="#38bdf8"
+        animate={{ r: [5, 8, 5] }}
+        transition={{ duration: 1, repeat: Infinity }}
+      />
+      <text x="20" y="145" fontSize="8" fill="#64748b">Now</text>
+      <text x="170" y="145" fontSize="8" fill="#64748b">Fear Ceiling</text>
+      <text x="90" y="110" fontSize="10" fill="#38bdf8" textAnchor="middle">Collapsed Future</text>
+    </svg>
+  );
+};
+
+const DeltaTHViz: React.FC = () => {
+  return (
+    <div className="relative w-full h-full flex flex-col items-center justify-center p-4">
+      <div className="flex gap-2">
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            className={`w-8 h-8 rounded-lg border ${i === 2 ? 'border-rose-500 bg-rose-500/20' : 'border-white/10 bg-white/5'}`}
+            animate={i === 2 ? {
+              scale: [1, 1.2, 1],
+              rotate: [0, 10, -10, 0],
+            } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            {i === 2 && <Zap size={16} className="text-rose-500 m-auto mt-1.5" />}
+          </motion.div>
+        ))}
+      </div>
+      <motion.div
+        className="mt-4 text-[10px] text-rose-400 font-mono"
+        animate={{ opacity: [0, 1, 0] }}
+        transition={{ duration: 1.5, repeat: Infinity }}
+      >
+        ERROR: Missed Timing @ x:y
+      </motion.div>
+      <div className="mt-2 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+        <motion.div
+          className="h-full bg-sky-400"
+          animate={{ x: [-200, 200] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          style={{ width: '40%' }}
+        />
+      </div>
+    </div>
+  );
+};
 
 export default FeelAliveView;
