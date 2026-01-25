@@ -10,7 +10,12 @@ const PoemCard: React.FC<{
   className?: string;
   delay?: number;
   featured?: boolean;
-}> = ({ setShowRecordingModal, title, children, className = "", delay = 0, featured = false }) => {
+  id?: string;
+}> = ({ setShowRecordingModal, title, children, className = "", delay = 0, featured = false, id }) => {
+  const activePoemId = useStore(state => state.activePoemId);
+  const setActivePoemId = useStore(state => state.setActivePoemId);
+  const poemId = id || title || Math.random().toString();
+
   const [showVoicePicker, setShowVoicePicker] = React.useState(false);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const [isPaused, setIsPaused] = React.useState(false);
@@ -19,11 +24,19 @@ const PoemCard: React.FC<{
   const utteranceRef = React.useRef<SpeechSynthesisUtterance | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = React.useState(1.0);
   const isSpeakingRef = React.useRef(false);
+  const playbackTimeoutRef = React.useRef<any>(null);
   const [chunkIndex, setChunkIndex] = React.useState(0);
   const currentChunksRef = React.useRef<{ text: string; offset: number }[]>([]);
   const currentGenderRef = React.useRef<'male' | 'female' | 'own'>('male');
   const [neuralPulse, setNeuralPulse] = React.useState(0);
   const [voiceError, setVoiceError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    // Stop if another poem starts playing
+    if (activePoemId && activePoemId !== poemId && isSpeakingRef.current) {
+      stopSpeaking();
+    }
+  }, [activePoemId]);
 
   React.useEffect(() => {
     let interval: any;
@@ -33,7 +46,6 @@ const PoemCard: React.FC<{
         setNeuralPulse(prev => (prev + 1) % 100);
       }, 50);
 
-      // Workaround for Chrome bug: resume speech every 10s to prevent timeout
       resumeInterval = setInterval(() => {
         if (typeof window !== 'undefined' && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
           window.speechSynthesis.pause();
@@ -44,6 +56,7 @@ const PoemCard: React.FC<{
     return () => {
       clearInterval(interval);
       clearInterval(resumeInterval);
+      if (playbackTimeoutRef.current) clearTimeout(playbackTimeoutRef.current);
       if (isSpeakingRef.current) {
         window.speechSynthesis.cancel();
       }
@@ -53,11 +66,13 @@ const PoemCard: React.FC<{
 
   const stopSpeaking = () => {
     isSpeakingRef.current = false;
-    window.speechSynthesis.cancel();
+    if (playbackTimeoutRef.current) clearTimeout(playbackTimeoutRef.current);
+    if (typeof window !== 'undefined') window.speechSynthesis.cancel();
     setIsSpeaking(false);
     setIsPaused(false);
     setHighlightRange(null);
     utteranceRef.current = null;
+    if (activePoemId === poemId) setActivePoemId(null);
   };
 
   const pauseSpeaking = () => {
@@ -110,28 +125,27 @@ const PoemCard: React.FC<{
 
   const speakActual = (gender: 'male' | 'female' | 'own') => {
     setShowVoicePicker(false);
-    window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined') window.speechSynthesis.cancel();
+    setActivePoemId(poemId);
     setIsPaused(false);
     currentGenderRef.current = gender;
 
-    const textElements = contentRef.current?.querySelectorAll('p');
+    // Use innerText to get lines including <br> as \n
+    const text = contentRef.current?.innerText || "";
+    const lines = text.split('\n').filter(l => l.trim().length > 0);
+
     const chunks: { text: string; offset: number }[] = [];
-    let currentOffset = title ? title.length + 2 : 0;
+    let currentPos = 0;
 
-    if (title) chunks.push({ text: title, offset: 0 });
-
-    if (textElements && textElements.length > 0) {
-      textElements.forEach((el) => {
-        const text = (el as HTMLElement).innerText.trim();
-        if (text) {
-          chunks.push({ text, offset: currentOffset });
-          currentOffset += (el as HTMLElement).innerText.length;
-        }
-      });
-    } else if (contentRef.current) {
-      const text = (contentRef.current as HTMLElement).innerText.trim();
-      if (text) chunks.push({ text, offset: 0 });
+    if (title) {
+      chunks.push({ text: title, offset: 0 });
+      currentPos = title.length + 2;
     }
+
+    lines.forEach(line => {
+      chunks.push({ text: line.trim(), offset: currentPos });
+      currentPos += line.length + 1; // +1 for the newline that was split
+    });
 
     if (chunks.length === 0) return;
     currentChunksRef.current = chunks;
@@ -207,8 +221,9 @@ const PoemCard: React.FC<{
 
     utterance.onend = () => {
       if (isSpeakingRef.current) {
-        const pauseTime = isEmotional ? 1200 : 800;
-        setTimeout(() => playChunk(index + 1), pauseTime);
+        // Poetic flow: natural pause between misras/lines
+        const pauseTime = isEmotional ? 1400 : 900;
+        playbackTimeoutRef.current = setTimeout(() => playChunk(index + 1), pauseTime);
       }
     };
 
@@ -238,8 +253,8 @@ const PoemCard: React.FC<{
 
   // Helper to render text with highlighting
   const renderTextWithHighlight = (text: string, globalOffset: number, colorClass: string = "text-slate-300") => {
-    // Match words and non-word separators
-    const parts = text.split(/(\s+|[,.!?;:]+)/);
+    // Match words and non-word separators including Hindi । and |
+    const parts = text.split(/(\s+|[।|,.!?;:]+)/);
     let currentOffset = globalOffset;
 
     return parts.map((part, i) => {
@@ -716,7 +731,7 @@ const MindspaceView: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
           {/* Intro Verses */}
           <div className="space-y-6 sm:space-y-8 md:space-y-12 flex flex-col justify-center">
-            <PoemCard delay={0.1}>
+            <PoemCard id="intro" delay={0.1}>
               <p>एक दुनिया था ख़ुद में, और था ये भी की</p>
               <p className="text-sky-200/80">मुट्ठी भर राख के मुक़ाबिल ना था ।।</p>
               <div className="h-4" />
@@ -729,7 +744,7 @@ const MindspaceView: React.FC = () => {
           </div>
 
           {/* Featured Long Poem */}
-          <PoemCard title="पत्थर के ज़ुबाँ" className="row-span-2" delay={0.4}>
+          <PoemCard id="patthar" title="पत्थर के ज़ुबाँ" className="row-span-2" delay={0.4}>
             <p>जौन तुम्हें कुछ बताना चाहता था,<br /><span className="text-sky-200/80">सफ़र को छोड़ के वो घर आना चाहता था ।</span></p>
             <p>झुर्रियों को लपेट के मेरी आँखों पर,<br /><span className="text-sky-200/80">नख़ुदा सैलाब छुपाना चाहता था।</span></p>
             <p>उसने मेरे कंधे पर हाथ रखा ऐसे,<br /><span className="text-sky-200/80">कोई आसमाँ का ठिकाना चाहता था।</span></p>
@@ -749,7 +764,7 @@ const MindspaceView: React.FC = () => {
         </div>
 
         <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
-          <PoemCard title="हमसफ़र" featured>
+          <PoemCard id="humsafar" title="हमसफ़र" featured>
             <p>आसमाँ से छिपा के सख़्सियत अपनी ,<br /><span className="text-sky-200/80">सितारों को साहिल हमसफ़र समझते हैं।</span></p>
             <p>मोहब्बत भी फ़क़त फकीरी है,<br /><span className="text-sky-200/80">ये उनके दिल को अपना घर समझते हैं।</span></p>
             <p>कहते हैं मुझको ग़लतियाँ सुधारो "अमन",<br /><span className="text-sky-200/80">अपनी परछाई से हमको जो बेख़बर समझते हैं।</span></p>
@@ -762,14 +777,14 @@ const MindspaceView: React.FC = () => {
           </PoemCard>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 xs:gap-6 sm:gap-8 md:gap-12">
-            <PoemCard title="साथ कौन है?">
+            <PoemCard id="saath" title="साथ कौन है?">
               <p>वो मेरे सीने में धड़कन अपनी , सहेज कुछ यूँ रहा है<br /><span className="text-sky-200/80">वो इस क़दर जकड़ के भी मुझको, ढूँड़ तो सुकूँ रहा है !</span></p>
               <div className="h-px bg-white/5 w-full my-4" />
               <p>वो जिसे आरज़ू सिर्फ़ मेरी हुआ करती थी जाना<br /><span className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</span></p>
               <p className="text-sky-200/80">मेरे बाद जो वो ढूँड रहा है, क्यू रहा है !</p>
             </PoemCard>
 
-            <PoemCard title="कौन जाने मोहब्बत">
+            <PoemCard id="mohabbat" title="कौन जाने मोहब्बत">
               <p>ये कैसे दिखते हैं ज़िंदा लोग मरे हुए?<br /><span className="text-sky-200/80">हमसे पूछते हो? हम अपनी जाँ के पराए हैं।</span></p>
               <p>ये इतने सारे बिन पगड़ी के लोग? ( पगड़ी - ज़मीर )<br /><span className="text-sky-200/80">ये कौन हैं, ये कहाँ से आए हैं?</span></p>
               <p>मसला सुनो!! जाँ नहीं निकलती तबीब!! (तबीब- डॉक्टर)<br /><span className="text-sky-200/80">ये महफ़िल में मेरी जाँ, मेरी दवा लूटा के आए हैं!</span></p>
@@ -780,7 +795,7 @@ const MindspaceView: React.FC = () => {
         </div>
 
         <div className="mt-8 xs:mt-12 sm:mt-20 space-y-8 xs:space-y-12 sm:space-y-20">
-          <PoemCard title="दस्तार" featured>
+          <PoemCard id="dastar" title="दस्तार" featured>
             <p>उनको छू कर हवा कहती है मुझसे</p>
             <p className="text-sky-200/80">तमाशा देखेंगे, ख़ुद को साहिब-ए-ईसार बताने वाले</p>
             <p>उनकी आँखों में देखने वाले जाँ हिफ़ाज़त रखना</p>
@@ -810,7 +825,7 @@ const MindspaceView: React.FC = () => {
           <div className="h-px bg-white/5 w-full my-12" />
           <DeepSequenceArchive />
 
-          <PoemCard title="आइनों के शक़्ल">
+          <PoemCard id="aina" title="आइनों के शक़्ल">
             <p>एक तरफ़ देखा तो उसकी आँखें दिख रही थी</p>
             <p className="text-sky-200/80">एक तरफ़ सीने में जैसे खंजर उतर रहा था।</p>
             <p>हमने निकाला दिल अपना हथेली पर रख दिया</p>
@@ -829,12 +844,12 @@ const MindspaceView: React.FC = () => {
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
 
-          <PoemCard title="ताका-झाँकी">
+          <PoemCard id="taka" title="ताका-झाँकी">
             <p>इन्हें समंदर से मिलना है, और किनारे ढूँढते हैं,</p>
             <p className="text-sky-200/80">ये ज़मीन पे रहने वाले हैं, जो सितारे ढूँढते हैं।</p>
             <p>सच पूछो तो अपने गिरेबाँ का पता नहीं इन्हें,</p>
             <p className="text-sky-200/80">ये, ये जो चाँद में भी दरारें ढूँढते हैं।</p>
-            <p className="mt-4 text-sky-200/80">&#123; Distracted Self love&#125;</p>
+            <p className="mt-4 text-sky-200/80">Distracted Self love</p>
             <p className="mt-4">They long to meet the ocean, those who seek a shore,</p>
             <p className="text-sky-200/80">Yet they are earthbound souls, chasing stars evermore.</p>
             <p>Truth be told, they fail to know the land they tread,</p>
@@ -842,7 +857,7 @@ const MindspaceView: React.FC = () => {
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
 
-          <PoemCard title="नई जगह है">
+          <PoemCard id="nai" title="नई जगह है">
             <p>नई जगह है,</p>
             <p className="text-sky-200/80">ये शानदार नुमाइश की चीज़ हवेली।</p>
             <p>लिपटने को कुछ,</p>
@@ -919,7 +934,7 @@ const MindspaceView: React.FC = () => {
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
 
-          <PoemCard title="Galatfehmi {गलतफहमी}">
+          <PoemCard title="Galatfehmi {गलतफहमी}" id="galatfehmi">
             <p>मोहब्बतन रखा उसके कदमों में ताज शहंशाह,</p>
             <p className="text-sky-200/80">हम बताएं? कैसे हुआ बरबाद शहंशाह? </p>
             <div className="h-4" />
@@ -927,11 +942,17 @@ const MindspaceView: React.FC = () => {
             <p className="text-sky-200/80">Saansein bachi hai ? ya karu tumhe</p>
             <p className="text-sky-200/80">aazad Shah-Anshan !</p>
             <div className="h-4" />
-            <p className="text-sky-200/80">&#123; बाहों में भरकर समंदर पूछता है अमन से कतरा ,</p>
-            <p className="text-sky-200/80">सांसें बची हैं? या कर दूँ तुम्हें आज़ाद शहंशाह? &#125;</p>
+            <p className="text-sky-200/80">बाहों में भरकर समंदर पूछता है अमन से कतरा ,</p>
+            <p className="text-sky-200/80">सांसें बची हैं? या कर दूँ तुम्हें आज़ाद शहंशाह?</p>
             <p className="mt-4 text-sky-400 font-bold">— अमन</p>
           </PoemCard>
         </div>
+
+        {/* Integrated high-fidelity soundscape player */}
+        <MusicRoomSection />
+
+        {/* Deep sequence archive for global uploads */}
+        <DeepSequenceArchive />
       </div>
     </>
   );

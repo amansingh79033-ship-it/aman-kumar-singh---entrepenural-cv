@@ -562,7 +562,7 @@ const RiskPsychologySection: React.FC = () => {
                     I think unspoken conversations are just one direction of this multi dimensional vector called MONEY.
                     M [ in the conversations that never happen_When families don’t plan_align_communicate, FOMO of going broke then routings the focus to continue survival with upgrades ypu have wished for, A, B, C, D, E….Z]
                     Two decays [Time and DeltaTh we are not capable currently to turn back , if that could be possible then consider it of no use. A dollae or any bill will be cheaper than toilet paper.
-                    DeltaTH= thoughts which should have recalled at time x:y and date &#123;x1 - y1 - z1&#125; PQW timezone.
+                    DeltaTH= thoughts which should have recalled at time x:y and date (x1 - y1 - z1) PQW timezone.
                     Now that piece of chunk is not at its actual position and affects whole mathematical calculations under neuron’s . And in results it lets the calculation go randomised and on its own without any input. Sad is the part that just because it’s misplaced , we could have placed it well . But you cannot put time and deltaTH in a same equation (as of now, lets hope some evolution in string theory. I hope by reaching 2070-80 or in case of any miracle 2060-65 , we might will be able to at least replace the chunks , still cannot put both in one equation!"
                   </p>
                 </div>

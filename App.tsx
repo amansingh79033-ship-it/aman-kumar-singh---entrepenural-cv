@@ -71,6 +71,9 @@ const App: React.FC = () => {
 
     const timer = setTimeout(() => setIsLoaded(true), 1000);
 
+    // Initial data synchronization
+    useStore.getState().fetchData();
+
     const handleViewChange = (e: any) => {
       if (e.detail) setCurrentView(e.detail);
     };

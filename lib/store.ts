@@ -39,6 +39,7 @@ interface AppState {
     showcaseItems: ShowcaseItem[];
     resources: Resource[];
     music: MusicItem[];
+    activePoemId: string | null;
 
     // Actions
     fetchData: () => Promise<void>;
@@ -61,6 +62,7 @@ interface AppState {
 
     addMusic: (music: Omit<MusicItem, 'id' | 'timestamp'>) => Promise<void>;
     removeMusic: (id: string) => Promise<void>;
+    setActivePoemId: (id: string | null) => void;
 }
 
 export interface MusicItem {
@@ -78,6 +80,7 @@ export const useStore = create<AppState>((set, get) => ({
     frozenIps: [],
     showcaseItems: [],
     resources: [],
+    activePoemId: null,
 
     fetchData: async () => {
         try {
@@ -283,5 +286,7 @@ export const useStore = create<AppState>((set, get) => ({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'removeMusic', payload: { id } })
         });
-    }
+    },
+
+    setActivePoemId: (id) => set({ activePoemId: id })
 }));
